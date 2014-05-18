@@ -1,0 +1,24 @@
+{
+    "projects": {
+        "drone": {
+            "type": "node",
+            "path": "server/source/drone"
+        },
+
+        "master": {
+            "type": "node",
+            "path": "server/source/master"
+        }
+    },
+
+    "groups": {
+        "all": [
+            "drone",
+            "master"
+        ]
+    },
+
+    "files": [
+        "server/source/common/messages/messages_common.json"
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "Hello": {
+        "forcedId": 0,
+        
+        "properties": {
+            "build": "int32",
+            "type": "int8"
+        },
+
+        "packers": ["all"],
+        "unpackers": ["all"]
+    },
+
+    "SpawnProcess": {
+        "properties": {
+            "type": "int8"
+        },
+
+        "packers": ["master"],
+        "unpackers": ["drone"]
+    }
+}

@@ -55,16 +55,21 @@ _.extend(Server.prototype, {
     },
 
     onConnectedToMaster: function() {
-        Log.trace("Connection to Master established.");
+        this.masterConnection.emitter.on("verify", this.onMasterVerified);
+        this.masterConnection.emitter.on("reject", this.onMasterRejected);
     },
 
-    onMasterVerified: function() {
+    onMasterVerified: function(connection) {
         if( process.send )
         {
             process.send({
                 event: "connect"
             });
         }
+    },
+
+    onMasterRejected: function(connection) {
+
     }
 });
 
