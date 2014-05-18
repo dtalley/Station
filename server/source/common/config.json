@@ -1,5 +1,13 @@
 {
     "ports":{
         "master": 12000
+    },
+
+    "target":"default",
+
+    "targets":{
+        "default":{
+            "masterAddress":"localhost"
+        }
     }
 }

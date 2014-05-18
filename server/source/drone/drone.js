@@ -43,7 +43,7 @@ _.extend(Drone.prototype, {
         var connected = false;
 
         process.on("message", function(message){
-            if( message.type == "connected" )
+            if( message.event == "connect" )
             {
                 pendingProcesses.splice(pendingProcesses.indexOf(process), 1);
                 processes.push(process);

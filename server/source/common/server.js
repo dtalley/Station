@@ -1,9 +1,11 @@
 var _ = require("lodash");
 var net = require('net');
+var nconf = require("nconf");
 var EventEmitter = require("events").EventEmitter;
 var ServerCommon = require(__dirname + "/common.js");
 var Connection = require(__dirname + "/connection.js").Connection;
 var Listener = require(__dirname + "/listener.js").Listener;
+var Log = require(__dirname + "/log.js");
 
 function Server(options) {
     _.bindAll(this);
@@ -13,6 +15,10 @@ function Server(options) {
     this._config = _.defaults({}, options, {
         listeners: []
     });
+
+    this.target = nconf.get("targets")[nconf.get("target")];
+
+    this.masterConnection = null;
 }
 
 _.extend(Server.prototype, {
@@ -23,17 +29,41 @@ _.extend(Server.prototype, {
             });
 
             listener.listener.start();
+
+            listener.listener.emitter.on("connect", this.onConnection);
         }, this);
 
-        if( this._config.type == ServerCommon.ProcessTypes.Master )
+        if( this._config.type === ServerCommon.ProcessTypes.Master )
         {
-            process.send({
-                type: "connected"
-            });
+            this.onMasterVerified();
         }
         else
         {
+            this.masterConnection = new Connection({
+                host: this.target.masterAddress,
+                port: nconf.get("ports:master")
+            });
 
+            this.masterConnection.emitter.on("connect", this.onConnectedToMaster);
+
+            this.masterConnection.connect();
+        }
+    },
+
+    onConnection: function(listener, connection) {
+        this.emitter.emit("connect", listener, connection);
+    },
+
+    onConnectedToMaster: function() {
+        Log.trace("Connection to Master established.");
+    },
+
+    onMasterVerified: function() {
+        if( process.send )
+        {
+            process.send({
+                event: "connect"
+            });
         }
     }
 });

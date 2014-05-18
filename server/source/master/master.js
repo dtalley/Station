@@ -23,15 +23,27 @@ function Master() {
         type: ServerCommon.ProcessTypes.Master
     });
 
-    this.server.emitter.on("connection", this.onConnection);
-    this.server.emitter.on("message", this.onMessage);
+    this.server.emitter.on("connect", this.onConnection);
 
     this.server.start();
 }
 
 _.extend(Master.prototype, {
-    onConnection: function(connection) {
-        console.log("Connection received.");
+    onConnection: function(listener, connection) {
+        connection.claim();
+
+        connection.emitter.on("verify", this.onCennectionVerified);
+        connection.emitter.on("reject", this.onConnectionRejected);
+
+        connection.verify();
+    },
+
+    onCennectionVerified: function(connection) {
+
+    },
+
+    onConnectionRejected: function(connection) {
+
     },
 
     onMessage: function(message, connection) {

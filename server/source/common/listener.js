@@ -26,7 +26,7 @@ _.extend(Listener.prototype, {
 
     onConnection: function(connection) {
         var ref = new Connection(connection);
-        this.emit("connection", ref);
+        this.emitter.emit("connect", this, ref);
 
         if( !ref.claimed )
         {
