@@ -1,7 +1,7 @@
 {
     "Hello": {
         "forcedId": 0,
-        
+
         "properties": {
             "build": "int32",
             "type": "int8"
