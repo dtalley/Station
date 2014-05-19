@@ -2,9 +2,9 @@ var _ = require("lodash");
 var net = require('net');
 var EventEmitter = require("events").EventEmitter;
 var Log = require(__dirname + "/log.js");
-var nconf = require("nconf");
+var conf = require(__dirname + "/conf.js");
 
-var messages = require(nconf.get("messageFile"));
+var messages = require(conf.get("messageFile"));
 
 function Processor() {
     this.targetId = 0;

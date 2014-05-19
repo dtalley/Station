@@ -1,14 +1,9 @@
 process.title = "Gateway";
 
-var nconf = require("nconf");
-
-nconf.argv()
-     .env()
-     .file("local", __dirname + "/config.json")
-     .file("common", __dirname + "/../common/config.json")
-     .defaults({
-        messageFile: __dirname + "/generated_messages_gateway.js"
-     });
+//Set up our configuration
+var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
+    messageFile: __dirname + "/generated_messages_gateway.js"
+});
 
 var _ = require("lodash");
 var ServerCommon = require(__dirname + "/../common/common.js");

@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var net = require('net');
-var nconf = require("nconf");
+var conf = require(__dirname + "/conf.js");
 var EventEmitter = require("events").EventEmitter;
 var ServerCommon = require(__dirname + "/common.js");
 var Connection = require(__dirname + "/connection.js").Connection;
@@ -16,7 +16,7 @@ function Server(options) {
         listeners: []
     });
 
-    this.target = nconf.get("targets")[nconf.get("target")];
+    this.target = conf.get("targets")[conf.get("target")];
 
     this.masterConnection = null;
 }
@@ -44,11 +44,11 @@ _.extend(Server.prototype, {
         {
             this.masterConnection = new Connection({
                 host: this.target.masterAddress,
-                port: nconf.get("ports:master"),
+                port: conf.get("ports:master"),
                 remoteType: ServerCommon.ProcessTypes.Master
             }, this._config.type);
 
-            Log.info("Connecting to Master at " + this.target.masterAddress + ":" + nconf.get("ports:master"));
+            Log.info("Connecting to Master at " + this.target.masterAddress + ":" + conf.get("ports:master"));
 
             this.masterConnection.emitter.on("connect", this.onConnectedToMaster);
             this.masterConnection.emitter.on("disconnect", this.onMasterDisconnected);

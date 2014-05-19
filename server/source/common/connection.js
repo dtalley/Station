@@ -4,10 +4,9 @@ var ServerCommon = require(__dirname + "/common.js");
 var EventEmitter = require("events").EventEmitter;
 var Log = require(__dirname + "/log.js");
 var Processor = require(__dirname + "/processor.js").Processor;
-var nconf = require("nconf");
+var conf = require(__dirname + "/conf.js");
 
-var messages = require(nconf.get("messageFile"));
-var helloParameters = nconf.get("hello") || {};
+var messages = require(conf.get("messageFile"));
 
 function Connection(multiple, type) {
     _.bindAll(this);
@@ -83,7 +82,7 @@ _.extend(Connection.prototype, {
                 var message = messages.Hello.create();
                 message.build = 0;
                 message.type = this.localType.id;
-                message.spawnId = nconf.get("spawnId");
+                message.spawnId = conf.get("spawnId");
                 
                 this.sendMessage(message);
             }

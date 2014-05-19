@@ -1,21 +1,17 @@
 process.title = "Master";
 
-var nconf = require("nconf");
+//Set up our configuration
+var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
+    messageFile: __dirname + "/generated_messages_master.js"
+});
 
-nconf.argv()
-     .env()
-     .file("local", __dirname + "/config.json")
-     .file("common", __dirname + "/../common/config.json")
-     .defaults({
-        messageFile: __dirname + "/generated_messages_master.js"
-     });
-
+//Node modules
 var _ = require("lodash");
 var ServerCommon = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
 var Log = require(__dirname + "/../common/log.js");
 
-var messages = require(nconf.get("messageFile"));
+var messages = require(conf.get("messageFile"));
 
 function Master() {
     _.bindAll(this);
@@ -23,7 +19,7 @@ function Master() {
     this.server = new Server({
         listeners: [
             {
-                port: nconf.get("ports:master")
+                port: conf.get("ports:master")
             }
         ],
 

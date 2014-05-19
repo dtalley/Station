@@ -1,23 +1,22 @@
 process.title = "Drone";
 
-var nconf = require("nconf");
+//Set up our configuration
+var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
+    messageFile: __dirname + "/generated_messages_drone.js"
+});
 
-nconf.argv()
-     .env()
-     .file("local", __dirname + "/config.json")
-     .file("common", __dirname + "/../common/config.json")
-     .defaults({
-        messageFile: __dirname + "/generated_messages_drone.js"
-     });
-
+//Node modules
 var fork = require("child_process").fork;
 var _ = require("lodash");
+
+//Common modules
 var Connection = require(__dirname + "/../common/connection.js").Connection;
 var ServerCommon = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
 var Log = require(__dirname + "/../common/log.js");
 
-var messages = require(nconf.get("messageFile"));
+//Pull out our messages registry
+var messages = require(conf.get("messageFile"));
 
 function Drone() {
     _.bindAll(this);
@@ -25,7 +24,7 @@ function Drone() {
     this.processes = [];
     this.pendingProcesses = [];
 
-    this.directive = nconf.get("directives")[nconf.get("directive")];
+    this.directive = conf.get("directives")[conf.get("directive")];
     this.processFlags = 0;
 
     for( var key in this.directive.services )
