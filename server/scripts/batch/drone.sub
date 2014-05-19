@@ -1,0 +1,13 @@
+Universe = vanilla
+
+Output = log/drone.stdout.$(Cluster).$(Process)
+Error = log/drone.stderr.$(Cluster).$(Process)
+Log = log/drone.log.$(Cluster)
+
+stream_output = true
+stream_error = true
+
+Executable = /bin/env
+Arguments = node ../../source/drone/drone.js
+
+queue 1
