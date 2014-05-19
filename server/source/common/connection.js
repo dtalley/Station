@@ -7,6 +7,7 @@ var Processor = require(__dirname + "/processor.js").Processor;
 var nconf = require("nconf");
 
 var messages = require(nconf.get("messageFile"));
+var helloParameters = nconf.get("hello") || {};
 
 function Connection(multiple, type) {
     _.bindAll(this);
@@ -72,6 +73,8 @@ _.extend(Connection.prototype, {
                 }
 
                 this.remoteType = ServerCommon.ProcessIndex[msg.type];
+
+                this.spawnId = msg.spawnId;
             }
             else if( msg.type === this.remoteType.id )
             {
@@ -80,6 +83,7 @@ _.extend(Connection.prototype, {
                 var message = messages.Hello.create();
                 message.build = 0;
                 message.type = this.localType.id;
+                message.spawnId = nconf.get("spawnId");
                 
                 this.sendMessage(message);
             }
@@ -94,7 +98,7 @@ _.extend(Connection.prototype, {
         }
         else if( this.verified )
         {
-            this.emitter.emit("message", message);
+            this.emitter.emit("message", msg, this);
         }
         else
         {
@@ -121,25 +125,25 @@ _.extend(Connection.prototype, {
     },
 
     onSocketConnected: function() {
-        Log.info("Socket to " + this.socket.remoteAddress + ":" + this.socket.remotePort + " connected...");
+        Log.info("Socket to " + this.host + ":" + this.port + " connected...");
         this.socket.removeListener("connect", this.onSocketConnected);
         this.emitter.emit("connect", this);
     },
 
     onSocketHalfClosed: function() {
-        Log.info("Socket to " + this.socket.remoteAddress + ":" + this.socket.remotePort + " ended on remote end...");
+        Log.info("Socket to " + this.host + ":" + this.port + " ended on remote end...");
         this.socket.end();
         this.verified = false;
     },
 
     onSocketDisconnected: function() {
-        Log.info("Socket to " + this.socket.remoteAddress + ":" + this.socket.remotePort + " disconnected...");
+        Log.info("Socket to " + this.host + ":" + this.port + " disconnected...");
         this.emitter.emit("disconnect", this);
         this.verified = false;
     },
 
     onSocketError: function(e) {
-        Log.info("Socket to " + this.socket.remoteAddress + ":" + this.socket.remotePort + " encountered an error...");
+        Log.info("Socket to " + this.host + ":" + this.port + " encountered an error...");
 
         this.socket.end();
     },
@@ -152,6 +156,7 @@ _.extend(Connection.prototype, {
         var message = messages.Hello.create();
         message.build = 0;
         message.type = this.localType.id;
+        message.spawnId = 0;
         
         this.sendMessage(message);
     },

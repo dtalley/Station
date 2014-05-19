@@ -48,8 +48,11 @@ _.extend(Server.prototype, {
                 remoteType: ServerCommon.ProcessTypes.Master
             }, this._config.type);
 
+            Log.info("Connecting to Master at " + this.target.masterAddress + ":" + nconf.get("ports:master"));
+
             this.masterConnection.emitter.on("connect", this.onConnectedToMaster);
             this.masterConnection.emitter.on("disconnect", this.onMasterDisconnected);
+            this.masterConnection.emitter.on("message", this.onMessage);
 
             this.masterConnection.connect();
         }
@@ -57,6 +60,9 @@ _.extend(Server.prototype, {
 
     onConnection: function(listener, connection) {
         this.emitter.emit("connect", listener, connection);
+
+        connection.emitter.on("message", this.onMessage);
+        connection.emitter.on("destroy", this.onDestroyConnection);
     },
 
     onConnectedToMaster: function() {
@@ -65,7 +71,7 @@ _.extend(Server.prototype, {
     },
 
     onMasterDisconnected: function() {
-
+        this.masterConnection.connect();
     },
 
     onMasterVerified: function(connection) {
@@ -77,9 +83,19 @@ _.extend(Server.prototype, {
                 event: "connect"
             });
         }
+
+        this.emitter.emit("master", this.masterConnection);
     },
 
     onMasterRejected: function(connection) {
+
+    },
+
+    onMessage: function(message, connection) {
+        this.emitter.emit("message", message, connection);
+    },
+
+    onDestroyConnection: function(connection) {
 
     }
 });

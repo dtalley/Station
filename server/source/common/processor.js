@@ -57,6 +57,7 @@ _.extend(Processor.prototype, {
                 catch(e)
                 {
                     this.emitter.emit("error", "Could not unpack message: " + this.targetId);
+                    Log.error(e.stack);
                 }
             }
 

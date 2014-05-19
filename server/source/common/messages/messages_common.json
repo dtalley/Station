@@ -4,7 +4,8 @@
 
         "properties": {
             "build": "int32",
-            "type": "int8"
+            "type": "int8",
+            "spawnId": "int32"
         },
 
         "packers": ["all"],
@@ -13,10 +14,30 @@
 
     "SpawnProcess": {
         "properties": {
-            "type": "int8"
+            "type": "int8",
+            "spawnId": "int32"
         },
 
         "packers": ["master"],
         "unpackers": ["drone"]
+    },
+
+    "ProcessExited": {
+        "properties": {
+            "spawnId": "int32",
+            "type": "int8"
+        },
+
+        "packers": ["drone"],
+        "unpackers": ["master"]
+    },
+
+    "DroneIdentify": {
+        "properties": {
+            "flags": "int32"
+        },
+
+        "packers": ["drone"],
+        "unpackers": ["master"]
     }
 }

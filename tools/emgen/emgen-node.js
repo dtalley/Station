@@ -17,6 +17,8 @@ function getBuffer() {
     {
         return new Buffer(maxBufferSize);
     }
+
+    return bufferList.pop();
 }
 messages.getBuffer = getBuffer;
 
@@ -67,3 +69,4 @@ MessagePrototype.prototype.release = function() {
         }
     }
 };
+

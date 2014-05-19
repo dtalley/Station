@@ -1,7 +1,25 @@
 {
-    "default": {
-        "services": {
-            
+    "directive": "default",
+
+    "directives": {
+        "default": {
+            "services": {
+                "Master": 1,
+                "Gateway": 1,
+                "Authentication": 1
+            }
+        },
+
+        "gateway": {
+            "services": {
+                "Gateway": 1
+            }
+        },
+
+        "authentication": {
+            "services": {
+                "Authentication": 1
+            }
         }
     }
 }

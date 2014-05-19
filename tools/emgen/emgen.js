@@ -136,11 +136,21 @@ for( var key in storedMessages )
             write(name, "\tthis.store(buffer);\n");
             write(name, "\tthis.retain();\n\n");
 
+            write(name, "\t//Properties\n");
             for( var property in message.properties )
             {
+                if( property == "id" )
+                {
+                    throw new Error("Messages cannot have a property named 'id'.");
+                }
+                else if( property == "name" )
+                {
+                    throw new Error("Messages cannot have a property named 'name'.");
+                }
+
                 write(
                     name,
-                    "\tthis." + property + " = null;\n"
+                    "\tthis." + property + " = null; //" + message.properties[property] + "\n"
                 );
             }
 
@@ -154,7 +164,7 @@ for( var key in storedMessages )
                 name,
                 "messages." + key + ".prototype = new MessagePrototype(\"" + key + "\", " + message.id + ");\n" + 
                 "messages." + key + ".create = function(buffer) { return new messages." + key + "(buffer); };\n" +
-                "messages." + key + ".id = " + message.id + ";\n\n"
+                "messages." + key + ".id = " + message.id + ";\n"
             );
         }
 
@@ -164,10 +174,11 @@ for( var key in storedMessages )
             {
                 write(
                     name,
-                    "messages." + key + ".prototype.pack = function(buffer, offset, obj) {\n" +
+                    "\nmessages." + key + ".prototype.pack = function(buffer, offset, obj) {\n" +
                     "\tobj = obj || this;\n" +
                     "\tbuffer = buffer || this.buffer;\n" +
-                    "\tif(offset === undefined)offset = 6;\n\n"
+                    "\tif(offset === undefined)offset = 6;\n" +
+                    "\tif(!buffer)throw new Error(\"No buffer to pack message into!\");\n\n"
                 );
 
                 for( var property in message.properties )
@@ -319,7 +330,7 @@ for( var key in storedMessages )
                 write(
                     name,
                     "\treturn offset;\n" +
-                    "};\n\n"
+                    "};\n"
                 );
             }
         }
@@ -330,10 +341,11 @@ for( var key in storedMessages )
             {
                 write(
                     name,
-                    "messages." + key + ".prototype.unpack = function(buffer, offset, obj) {\n" +
+                    "\nmessages." + key + ".prototype.unpack = function(buffer, offset, obj) {\n" +
                     "\tobj = obj || this;\n" +
                     "\tbuffer = buffer || this.buffer;\n" +
-                    "\tif(offset === undefined)offset = 6;\n\n"
+                    "\tif(offset === undefined)offset = 6;\n" +
+                    "\tif(!buffer)throw new Error(\"No buffer to unpack message from!\");\n\n"
                 );
 
                 var flags = [];
@@ -487,7 +499,7 @@ for( var key in storedMessages )
                 write(
                     name,
                     "\treturn offset;\n" +
-                    "};\n\n"
+                    "};\n"
                 );
             }
         }

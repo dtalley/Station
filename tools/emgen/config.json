@@ -13,13 +13,25 @@
         "master": {
             "type": "node",
             "path": "server/source/master"
+        },
+
+        "gateway": {
+            "type": "node",
+            "path": "server/source/gateway"
+        },
+
+        "authentication": {
+            "type": "node",
+            "path": "server/source/authentication"
         }
     },
 
     "groups": {
         "all": [
             "drone",
-            "master"
+            "master",
+            "gateway",
+            "authentication"
         ]
     },
 
