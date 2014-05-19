@@ -5,8 +5,10 @@ var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
     messageFile: __dirname + "/generated_messages_master.js"
 });
 
-//Node modules
+//Third-party modules
 var _ = require("lodash");
+
+//Common modules
 var ServerCommon = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
 var Log = require(__dirname + "/../common/log.js");

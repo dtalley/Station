@@ -5,9 +5,13 @@ var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
     messageFile: __dirname + "/generated_messages_gateway.js"
 });
 
+//Third-party modules
 var _ = require("lodash");
+
+//Common modules
 var ServerCommon = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
+var WebSocketServer = require(__dirname + "/../common/web.js").WebSocketServer;
 
 function Gateway() {
     _.bindAll(this);
@@ -20,6 +24,12 @@ function Gateway() {
     this.server.emitter.on("message", this.onMessage);
 
     this.server.start();
+
+    this.wss = new WebSocketServer({
+        port: conf.get("ports:gateway:client")
+    });
+
+    this.wss.start();
 }
 
 Gateway.prototype = {

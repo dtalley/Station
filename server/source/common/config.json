@@ -1,6 +1,14 @@
 {
     "ports":{
-        "master": 12000
+        "master": 12000,
+
+        "gateway": {
+            "client": 8081
+        },
+
+        "authentication": {
+            "client": 8080
+        }
     },
 
     "target":"default",

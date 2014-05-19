@@ -7,7 +7,7 @@ var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
     messageFile: __dirname + "/generated_messages_drone.js"
 });
 
-//Node modules
+//Third-party modules
 var fork = require("child_process").fork;
 var _ = require("lodash");
 
