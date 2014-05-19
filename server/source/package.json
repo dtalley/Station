@@ -6,8 +6,7 @@
   "dependencies": {
     "lodash": "^2.4.1",
     "nconf": "^0.6.9",
-    "winston": "^0.7.3",
-    "err": "^0.6.0"
+    "winston": "^0.7.3"
   },
   "devDependencies": {},
   "scripts": {
