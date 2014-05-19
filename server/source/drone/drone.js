@@ -1,3 +1,5 @@
+#!/bin/env node
+
 process.title = "Drone";
 
 var nconf = require("nconf");
