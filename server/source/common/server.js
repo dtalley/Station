@@ -48,7 +48,7 @@ _.extend(Server.prototype, {
                 remoteType: ServerCommon.ProcessTypes.Master
             }, this._config.type);
 
-            Log.info("Connecting to Master at " + this.target.masterAddress + ":" + conf.get("ports:master"));
+            Log.info("Connecting to Master at " + this.masterConnection.host + ":" + this.masterConnection.port);
 
             this.masterConnection.emitter.on("connect", this.onConnectedToMaster);
             this.masterConnection.emitter.on("disconnect", this.onMasterDisconnected);
