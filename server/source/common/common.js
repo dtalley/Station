@@ -1,17 +1,24 @@
-module.exports.ProcessTypes = {
-    Client: {
-        id: 0,
+module.exports.ProcessIndex = [
+    {
+        title: "Client",
         name: "client"
     },
-    Drone: {
-        id: 1,
+    {
+        title: "Drone",
         name: "drone"
     },
-    Master: {
-        id: 2,
+    {
+        title: "Master",
         name: "master"
     }
-};
+];
+
+module.exports.ProcessTypes = {};
+
+module.exports.ProcessIndex.forEach(function(process, i){
+    module.exports.ProcessTypes[process.title] = process;
+    process.id = i;
+});
 
 module.exports.Processes = [];
 module.exports.ProcessFlags = {};

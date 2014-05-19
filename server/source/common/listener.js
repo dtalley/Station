@@ -14,6 +14,8 @@ function Listener(options) {
     this.emitter = new EventEmitter();
 }
 
+Listener.prototype = {};
+
 _.extend(Listener.prototype, {
     start: function() {
         this.listener = net.createServer(this.onConnection);
@@ -24,12 +26,15 @@ _.extend(Listener.prototype, {
         Log.info("Listener bound on port " + this._config.port);
     },
 
-    onConnection: function(connection) {
-        var ref = new Connection(connection);
+    onConnection: function(socket) {
+        Log.info("Connection received on port " + this._config.port + " from " + socket.remoteAddress + ":" + socket.remotePort);
+
+        var ref = new Connection(socket, this._config.type);
         this.emitter.emit("connect", this, ref);
 
         if( !ref.claimed )
         {
+            Log.trace("Connection not claimed, destroying...");
             ref.destroy();
         }
     }

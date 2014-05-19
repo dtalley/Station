@@ -21,11 +21,14 @@ function Server(options) {
     this.masterConnection = null;
 }
 
+Server.prototype = {};
+
 _.extend(Server.prototype, {
     start: function() {
         this._config.listeners.forEach(function(listener){
             listener.listener = new Listener({
-                port: listener.port
+                port: listener.port,
+                type: this._config.type
             });
 
             listener.listener.start();
@@ -41,10 +44,12 @@ _.extend(Server.prototype, {
         {
             this.masterConnection = new Connection({
                 host: this.target.masterAddress,
-                port: nconf.get("ports:master")
-            });
+                port: nconf.get("ports:master"),
+                remoteType: ServerCommon.ProcessTypes.Master
+            }, this._config.type);
 
             this.masterConnection.emitter.on("connect", this.onConnectedToMaster);
+            this.masterConnection.emitter.on("disconnect", this.onMasterDisconnected);
 
             this.masterConnection.connect();
         }
@@ -59,9 +64,15 @@ _.extend(Server.prototype, {
         this.masterConnection.emitter.on("reject", this.onMasterRejected);
     },
 
+    onMasterDisconnected: function() {
+
+    },
+
     onMasterVerified: function(connection) {
         if( process.send )
         {
+            Log.info("Connection to Master verified.");
+
             process.send({
                 event: "connect"
             });

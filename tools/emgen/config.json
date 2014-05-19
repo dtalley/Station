@@ -1,5 +1,10 @@
 {
     "projects": {
+        "test_node": {
+            "type": "node",
+            "path": "server/test/emgen"
+        },
+
         "drone": {
             "type": "node",
             "path": "server/source/drone"
@@ -19,6 +24,7 @@
     },
 
     "files": [
+        "server/test/emgen/messages_test.json",
         "server/source/common/messages/messages_common.json"
     ]
 }

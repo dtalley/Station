@@ -1,17 +1,22 @@
 process.title = "Drone";
 
-var fork = require("child_process").fork;
-var _ = require("lodash");
 var nconf = require("nconf");
-var Connection = require(__dirname + "/../common/connection.js").Connection;
-var ServerCommon = require(__dirname + "/../common/common.js");
-var Server = require(__dirname + "/../common/server.js").Server;
-var Log = require(__dirname + "/../common/log.js");
 
 nconf.argv()
      .env()
      .file({ file: __dirname + "/config.json" })
      .file({ file: __dirname + "/../common/config.json" });
+
+nconf.defaults({
+    messageFile: __dirname + "/generated_messages_drone.js"
+});
+
+var fork = require("child_process").fork;
+var _ = require("lodash");
+var Connection = require(__dirname + "/../common/connection.js").Connection;
+var ServerCommon = require(__dirname + "/../common/common.js");
+var Server = require(__dirname + "/../common/server.js").Server;
+var Log = require(__dirname + "/../common/log.js");
 
 function Drone() {
     _.bindAll(this);
@@ -29,9 +34,11 @@ function Drone() {
     this.server.start();
 }
 
+Drone.prototype = {};
+
 _.extend(Drone.prototype, {
     spawn: function(config) {
-        Log.info("Drone spawning process of type '" + config.type.name + "'");
+        Log.info("Drone spawning process of type '" + config.type.title + "'");
 
         var process = fork(__dirname + "/../" + config.type.name + "/" + config.type.name + ".js");
         this.pendingProcesses.push(process);
@@ -48,10 +55,7 @@ _.extend(Drone.prototype, {
                 pendingProcesses.splice(pendingProcesses.indexOf(process), 1);
                 processes.push(process);
 
-                if( config.type == ServerCommon.ProcessTypes.Master )
-                {
-                    Log.info("Drone successfully spawned Master.");
-                }
+                Log.info("Drone successfully spawned '" + config.type.title + "'.");
 
                 connected = true;
             }

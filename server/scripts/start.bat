@@ -1,2 +1,2 @@
-node %~dp0..\Source\Drone\drone.js
+node %~dp0..\source\drone\drone.js
 pause

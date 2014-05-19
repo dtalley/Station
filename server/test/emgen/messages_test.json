@@ -1,0 +1,77 @@
+{
+    "SimpleTest": {
+        "forcedId": 23,
+
+        "properties": {
+            "test1": "int8",
+            "test2": "int16",
+            "test3": "int32",
+            "test5": "uint8",
+            "test6": "uint16",
+            "test7": "uint32",
+            "test9": "float",
+            "test10": "double",
+            "test11": "string",
+            "test12": "flag",
+            "test13": "flag",
+            "test14": "flag",
+            "test15": "flag",
+            "test16": "flag",
+            "test17": "flag"
+        },
+
+        "packers": ["test_node"],
+        "unpackers": ["test_node"]
+    },
+
+    "FlagTest1": {
+        "forcedId": 29,
+
+        "properties": {
+            "flag1": "flag",
+            "flag2": "flag",
+            "flag3": "flag",
+            "flag4": "flag",
+            "flag5": "flag",
+            "flag6": "flag",
+            "flag7": "flag",
+            "flag8": "flag",
+            "flag9": "flag",
+            "flag10": "flag",
+            "flag11": "flag",
+            "flag12": "flag"
+        },
+
+        "packers": ["test_node"],
+        "unpackers": ["test_node"]
+    },
+
+    "FlagTest2": {
+        "forcedId": 30,
+
+        "properties": {
+            "flag1": "flag",
+            "flag2": "flag",
+            "flag3": "flag",
+            "flag4": "flag",
+            "flag5": "flag",
+            "flag6": "flag",
+            "flag7": "flag",
+            "flag8": "flag",
+            "flag9": "flag",
+            "flag10": "flag",
+            "flag11": "flag",
+            "flag12": "flag",
+            "flag13": "flag",
+            "flag14": "flag",
+            "flag15": "flag",
+            "flag16": "flag",
+            "flag17": "flag",
+            "flag18": "flag",
+            "flag19": "flag"
+        },
+
+        "packers": ["test_node"],
+        "unpackers": ["test_node"]
+    }
+}

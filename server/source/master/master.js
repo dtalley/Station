@@ -1,14 +1,19 @@
 process.title = "Master";
 
-var _ = require("lodash");
 var nconf = require("nconf");
-var ServerCommon = require(__dirname + "/../common/common.js");
-var Server = require(__dirname + "/../common/server.js").Server;
 
 nconf.argv()
      .env()
      .file({ file: __dirname + "/config.json" })
      .file({ file: __dirname + "/../common/config.json" });
+
+nconf.defaults({
+    messageFile: __dirname + "/generated_messages_master.js"
+});
+
+var _ = require("lodash");
+var ServerCommon = require(__dirname + "/../common/common.js");
+var Server = require(__dirname + "/../common/server.js").Server;
 
 function Master() {
     _.bindAll(this);
@@ -28,26 +33,55 @@ function Master() {
     this.server.start();
 }
 
+Master.prototype = {
+    drones: []
+};
+
 _.extend(Master.prototype, {
     onConnection: function(listener, connection) {
         connection.claim();
 
-        connection.emitter.on("verify", this.onCennectionVerified);
+        connection.emitter.on("verify", this.onConnectionVerified);
         connection.emitter.on("reject", this.onConnectionRejected);
+        connection.emitter.on("disconnect", this.onConnectionLost);
 
         connection.verify();
     },
 
-    onCennectionVerified: function(connection) {
+    onConnectionVerified: function(connection) {
+        connection.emitter.on("message", this.onMessage);
+
+        switch(connection.remoteType.id)
+        {
+            case ServerCommon.ProcessTypes.Drone.id:
+                this.addDroneServer(connection);
+                break;
+        }
+    },
+
+    onConnectionRejected: function(connection, reason) {
 
     },
 
-    onConnectionRejected: function(connection) {
-
+    onConnectionLost: function(connection) {
+        switch(connection.localType.id)
+        {
+            case ServerCommon.ProcessTypes.Drone.id:
+                this.removeDroneServer(connection);
+                break;
+        }
     },
 
     onMessage: function(message, connection) {
-        console.log("Message received.");
+        
+    },
+
+    addDroneServer: function(connection) {
+
+    },
+
+    removeDroneServer: function(connection) {
+
     }
 });
 
