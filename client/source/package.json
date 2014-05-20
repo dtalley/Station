@@ -1,0 +1,23 @@
+{
+  "main": "client.html",
+  "node-main": "client.js",
+
+  "name": "Station Twelve",
+  "description": "Station Twelve",
+
+  "version": "0.0.1",
+
+  "window": {
+    "title": "Station",
+
+    "frame": false,
+    "toolbar": false,    
+
+    "width": 1280,
+    "height": 720
+  },
+
+  "webkit": {
+    
+  }
+}

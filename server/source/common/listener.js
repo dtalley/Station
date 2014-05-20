@@ -5,10 +5,12 @@ var EventEmitter = require("events").EventEmitter;
 //Third-party modules
 var _ = require("lodash");
 
+//Common modules
+var Log = require(__dirname + "/log.js").Log;
+
 //Generated common modules
 var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
 var Connection = GeneratedCommon.Connection;
-var Log = GeneratedCommon.Log;
 
 function Listener(options) {
     _.bindAll(this);

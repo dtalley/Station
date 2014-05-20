@@ -1,0 +1,1 @@
+%~dp0..\nw\nw.exe %~dp0..\source

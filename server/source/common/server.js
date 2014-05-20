@@ -8,12 +8,12 @@ var _ = require("lodash");
 //Common modules
 var Common = require(__dirname + "/common.js");
 var Listener = require(__dirname + "/listener.js").Listener;
+var Log = require(__dirname + "/log.js").Log;
 
 //Generated common modules
 var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
 var conf = GeneratedCommon.ConfigurationManager;
 var Connection = GeneratedCommon.Connection;
-var Log = GeneratedCommon.Log;
 
 function Server(options) {
     _.bindAll(this);
