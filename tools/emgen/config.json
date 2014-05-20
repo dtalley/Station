@@ -1,8 +1,8 @@
 {
     "projects": {
-        "test_node": {
+        "client": {
             "type": "node",
-            "path": "server/test/emgen"
+            "path": "client/source"
         },
 
         "drone": {
@@ -28,6 +28,7 @@
 
     "groups": {
         "all": [
+            "client",
             "drone",
             "master",
             "gateway",
@@ -36,7 +37,7 @@
     },
 
     "files": [
-        "server/test/emgen/messages_test.json",
-        "server/source/common/messages/messages_common.json"
+        "common/source/messages_common.json",
+        "server/source/common/messages/messages_master.json"
     ]
 }
