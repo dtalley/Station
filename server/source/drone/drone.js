@@ -40,13 +40,6 @@ function Drone() {
         }
     }
 
-    if( ( this.processFlags & Common.ProcessTypes.Master.flag ) > 0 )
-    {
-        this.spawn({
-            type: Common.ProcessTypes.Master
-        });
-    }
-
     this.server = new Server({
         type: Common.ProcessTypes.Drone
     });
@@ -54,6 +47,13 @@ function Drone() {
 
     this.server.emitter.on("message", this.onMessage);
     this.server.emitter.on("master", this.onMasterConnected);
+
+    if( ( this.processFlags & Common.ProcessTypes.Master.flag ) > 0 )
+    {
+        this.spawn({
+            type: Common.ProcessTypes.Master
+        });
+    }
 }
 
 Drone.prototype = {};
@@ -88,6 +88,7 @@ _.extend(Drone.prototype, {
         var spawn = this.spawn;
 
         var connected = false;
+        var masterConnection = this.server.masterConnection;
 
         process.on("message", function(message){
             if( message.event == "connect" )
@@ -136,7 +137,7 @@ _.extend(Drone.prototype, {
                 message.spawnId = config.spawnId;
                 message.type = config.type;
 
-                this.server.masterConnection.sendMessage(message);
+                masterConnection.sendMessage(message);
 
                 message.release();
             }

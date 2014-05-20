@@ -1,0 +1,1 @@
+%~dp0..\dist\win32\nw.exe %~dp0..\dist\win32\client.nw
