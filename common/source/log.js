@@ -1,5 +1,5 @@
 //Third-party node modules
-var winston = winston || require("winston");
+var winston = require("winston");
 
 var Log = function(){}
 

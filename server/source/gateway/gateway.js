@@ -6,7 +6,6 @@ var _ = require("lodash");
 //Common modules
 var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
-var WebSocketServer = require(__dirname + "/../common/web.js").WebSocketServer;
 
 //Generated common modules
 var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
@@ -29,12 +28,6 @@ function Gateway() {
     this.server.emitter.on("message", this.onMessage);
 
     this.server.start();
-
-    this.wss = new WebSocketServer({
-        port: conf.get("ports:gateway:client")
-    });
-
-    this.wss.start();
 }
 
 Gateway.prototype = {
