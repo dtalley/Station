@@ -42,4 +42,6 @@ for( var key in config.projects )
     var project = config.projects[key];
 
     fs.closeSync(project.file);
+
+    console.log("Successfully condensed common files for '" + project.name + "'.");
 }

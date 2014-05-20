@@ -39,7 +39,6 @@ config.files.forEach(function(file){
         var message = messages[key];
 
         storedMessages[key] = message;
-        console.log("Found message '" + key + "'");
 
         if( message.forcedId !== undefined && forcedId < message.forcedId )
         {
@@ -522,6 +521,8 @@ for( var key in config.projects )
     {
         write(key, "module.exports = messages;");
     }
+
+    console.log("Successfully wrote messages for '" + project.name + "'.");
 
     fs.closeSync(project.file);
 }
