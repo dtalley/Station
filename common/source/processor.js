@@ -1,18 +1,12 @@
-var _ = require("lodash");
-var net = require('net');
-var EventEmitter = require("events").EventEmitter;
-var Log = require(__dirname + "/log.js");
-var conf = require(__dirname + "/conf.js");
-
-var messages = require(conf.get("messageFile"));
-
-function Processor() {
+function Processor(messages) {
     this.targetId = 0;
     this.targetSize = 0;
 
     this.buffer = messages.getBuffer();
     this.bufferOffset = 0;
     this.bufferStaged = false;
+
+    this.messages = messages;
 
     this.emitter = new EventEmitter();
 }
@@ -38,7 +32,7 @@ _.extend(Processor.prototype, {
         
         if( this.bufferOffset >= this.targetSize )
         {
-            var messageClass = messages.index[this.targetId];
+            var messageClass = this.messages.index[this.targetId];
             
             if( !messageClass || !messageClass.create )
             {
@@ -67,8 +61,9 @@ _.extend(Processor.prototype, {
     },
 
     destroy: function() {
-        messages.returnBuffer(this.buffer);
+        this.messages.returnBuffer(this.buffer);
     }
 });
 
 module.exports.Processor = Processor;
+

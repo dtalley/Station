@@ -1,8 +1,14 @@
-var _ = require("lodash");
+//Node modules
 var net = require('net');
 var EventEmitter = require("events").EventEmitter;
-var Connection = require(__dirname + "/connection.js").Connection;
-var Log = require(__dirname + "/log.js");
+
+//Third-party modules
+var _ = require("lodash");
+
+//Generated common modules
+var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
+var Connection = GeneratedCommon.Connection;
+var Log = GeneratedCommon.Log;
 
 function Listener(options) {
     _.bindAll(this);
@@ -29,7 +35,7 @@ _.extend(Listener.prototype, {
     onConnection: function(socket) {
         Log.info("Connection received on port " + this._config.port + " from " + socket.remoteAddress + ":" + socket.remotePort);
 
-        var ref = new Connection(socket, this._config.type);
+        var ref = new Connection(socket, this._config.type.id);
         this.emitter.emit("connect", this, ref);
 
         if( !ref.claimed )

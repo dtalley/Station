@@ -29,3 +29,12 @@ module.exports.ProcessIndex.forEach(function(process, i){
 
     module.exports.ProcessTypes[process.title] = process;
 });
+
+module.exports.getProcessTitle = function(id) {
+    if( id >= this.ProcessIndex.length )
+    {
+        return "Unknown";
+    }
+    
+    return this.ProcessIndex[id].title;
+}

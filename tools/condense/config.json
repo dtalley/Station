@@ -1,0 +1,19 @@
+{
+    "projects": {
+        "server": {
+            "path": "server/source/common"
+        },
+
+        "client": {
+            "path": "client/source/common"
+        }
+    },
+
+    "files": [
+        "common/source/header.js",
+        "common/source/log.js",
+        "common/source/conf.js",
+        "common/source/processor.js",
+        "common/source/connection.js"
+    ]
+}

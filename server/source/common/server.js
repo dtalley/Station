@@ -1,11 +1,19 @@
-var _ = require("lodash");
+//Node modules
 var net = require('net');
-var conf = require(__dirname + "/conf.js");
 var EventEmitter = require("events").EventEmitter;
-var ServerCommon = require(__dirname + "/common.js");
-var Connection = require(__dirname + "/connection.js").Connection;
+
+//Third-party modules
+var _ = require("lodash");
+
+//Common modules
+var Common = require(__dirname + "/common.js");
 var Listener = require(__dirname + "/listener.js").Listener;
-var Log = require(__dirname + "/log.js");
+
+//Generated common modules
+var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
+var conf = GeneratedCommon.ConfigurationManager;
+var Connection = GeneratedCommon.Connection;
+var Log = GeneratedCommon.Log;
 
 function Server(options) {
     _.bindAll(this);
@@ -36,7 +44,7 @@ _.extend(Server.prototype, {
             listener.listener.emitter.on("connect", this.onConnection);
         }, this);
 
-        if( this._config.type === ServerCommon.ProcessTypes.Master )
+        if( this._config.type === Common.ProcessTypes.Master )
         {
             this.onMasterVerified();
         }
@@ -45,8 +53,8 @@ _.extend(Server.prototype, {
             this.masterConnection = new Connection({
                 host: this.target.masterAddress,
                 port: conf.get("ports:master"),
-                remoteType: ServerCommon.ProcessTypes.Master
-            }, this._config.type);
+                remoteType: Common.ProcessTypes.Master.id
+            }, this._config.type.id);
 
             Log.info("Connecting to Master at " + this.masterConnection.host + ":" + this.masterConnection.port);
 

@@ -2,20 +2,23 @@
 
 process.title = "Drone";
 
-//Set up our configuration
-var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
-    messageFile: __dirname + "/generated_messages_drone.js"
-});
-
 //Third-party modules
 var fork = require("child_process").fork;
 var _ = require("lodash");
 
 //Common modules
-var Connection = require(__dirname + "/../common/connection.js").Connection;
-var ServerCommon = require(__dirname + "/../common/common.js");
+var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
-var Log = require(__dirname + "/../common/log.js");
+
+//Generated common modules
+var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
+var conf = GeneratedCommon.ConfigurationManager;
+var Log = GeneratedCommon.Log;
+
+//Set up our configuration
+conf.init(__dirname, {
+    messageFile: __dirname + "/generated_messages_drone.js"
+});
 
 //Pull out our messages registry
 var messages = require(conf.get("messageFile"));
@@ -33,19 +36,19 @@ function Drone() {
     {
         if( this.directive.services[key] )
         {
-            this.processFlags |= ServerCommon.ProcessTypes[key].flag;
+            this.processFlags |= Common.ProcessTypes[key].flag;
         }
     }
 
-    if( ( this.processFlags & ServerCommon.ProcessTypes.Master.flag ) > 0 )
+    if( ( this.processFlags & Common.ProcessTypes.Master.flag ) > 0 )
     {
         this.spawn({
-            type: ServerCommon.ProcessTypes.Master
+            type: Common.ProcessTypes.Master
         });
     }
 
     this.server = new Server({
-        type: ServerCommon.ProcessTypes.Drone
+        type: Common.ProcessTypes.Drone
     });
     this.server.start();
 
@@ -112,14 +115,14 @@ _.extend(Drone.prototype, {
                 pendingProcesses.splice(pendingProcesses.indexOf(process), 1);
             }
 
-            if( config.type == ServerCommon.ProcessTypes.Master )
+            if( config.type == Common.ProcessTypes.Master )
             {
                 Log.info("Master process exited.");
 
                 if( connected )
                 {
                     spawn({
-                        type: ServerCommon.ProcessTypes.Master
+                        type: Common.ProcessTypes.Master
                     });
                 }
                 else
@@ -150,16 +153,16 @@ _.extend(Drone.prototype, {
     },
 
     onMessage: function(message, connection) {
-        switch(connection.remoteType.id)
+        switch(connection.remoteType)
         {
-            case ServerCommon.ProcessTypes.Master.id:
+            case Common.ProcessTypes.Master.id:
             {
                 switch(message.id)
                 {
                     case messages.SpawnProcess.id:
                     {
                         this.spawn({
-                            type: ServerCommon.ProcessIndex[message.type],
+                            type: Common.ProcessIndex[message.type],
                             spawnId: message.spawnId
                         });
                     }

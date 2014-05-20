@@ -1,23 +1,27 @@
 process.title = "Authentication";
 
-//Set up our configuration
-var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
-    messageFile: __dirname + "/generated_messages_authentication.js"
-});
-
 //Third-party modules
 var _ = require("lodash");
 
 //Common modules
-var ServerCommon = require(__dirname + "/../common/common.js");
+var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
 var WebSocketServer = require(__dirname + "/../common/web.js").WebSocketServer;
+
+//Generated common modules
+var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
+var conf = GeneratedCommon.ConfigurationManager;
+
+//Set up our configuration
+conf.init(__dirname, {
+    messageFile: __dirname + "/generated_messages_authentication.js"
+});
 
 function Authentication() {
     _.bindAll(this);
 
     this.server = new Server({
-        type: ServerCommon.ProcessTypes.Authentication
+        type: Common.ProcessTypes.Authentication
     });
 
     this.server.emitter.on("connect", this.onConnection);

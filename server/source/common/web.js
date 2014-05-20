@@ -1,9 +1,14 @@
-var _ = require("lodash");
+//Node modules
 var EventEmitter = require("events").EventEmitter;
-var Log = require(__dirname + "/log.js");
-var WSS = require('ws').Server;
 var http = require("http");
+
+//Third-party modules
+var _ = require("lodash");
+var WSS = require('ws').Server;
 var express = require("express");
+
+//Generated common modules
+var Log = require(__dirname + "/generated_common_server.js").Log;
 
 function WebSocketServer(options) {
     _.bindAll(this);

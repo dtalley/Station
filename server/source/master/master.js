@@ -1,17 +1,21 @@
 process.title = "Master";
 
-//Set up our configuration
-var conf = require(__dirname + "/../common/conf.js").init(__dirname, {
-    messageFile: __dirname + "/generated_messages_master.js"
-});
-
 //Third-party modules
 var _ = require("lodash");
 
 //Common modules
-var ServerCommon = require(__dirname + "/../common/common.js");
+var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
-var Log = require(__dirname + "/../common/log.js");
+
+//Generated common modules
+var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
+var conf = GeneratedCommon.ConfigurationManager;
+var Log = GeneratedCommon.Log;
+
+//Set up our configuration
+conf.init(__dirname, {
+    messageFile: __dirname + "/generated_messages_master.js"
+});
 
 var messages = require(conf.get("messageFile"));
 
@@ -25,7 +29,7 @@ function Master() {
             }
         ],
 
-        type: ServerCommon.ProcessTypes.Master
+        type: Common.ProcessTypes.Master
     });
 
     this.server.emitter.on("connect", this.onConnection);
@@ -55,9 +59,9 @@ _.extend(Master.prototype, {
     },
 
     onConnectionVerified: function(connection) {
-        switch(connection.remoteType.id)
+        switch(connection.remoteType)
         {
-            case ServerCommon.ProcessTypes.Gateway.id:
+            case Common.ProcessTypes.Gateway.id:
             {
                 this.addGatewayServer(connection);
             }
@@ -75,18 +79,19 @@ _.extend(Master.prototype, {
     },
 
     onConnectionLost: function(connection) {
-        switch(connection.localType.id)
+        switch(connection.localType)
         {
-            case ServerCommon.ProcessTypes.Drone.id:
+            case Common.ProcessTypes.Drone.id:
                 this.removeDroneServer(connection);
                 break;
         }
     },
 
     onMessage: function(message, connection) {
-        switch(connection.remoteType.id)
+        Log.trace(connection.remoteType);
+        switch(connection.remoteType)
         {
-            case ServerCommon.ProcessTypes.Drone.id:
+            case Common.ProcessTypes.Drone.id:
             {
                 switch(message.id)
                 {
@@ -118,17 +123,17 @@ _.extend(Master.prototype, {
 
         connection.flags = msg.flags;
 
-        if( !this.gateway && ( msg.flags & ServerCommon.ProcessTypes.Gateway.flag ) > 0 )
+        if( !this.gateway && ( msg.flags & Common.ProcessTypes.Gateway.flag ) > 0 )
         {
             this.spawnProcess({
-                type: ServerCommon.ProcessTypes.Gateway
+                type: Common.ProcessTypes.Gateway
             }, connection);
         }
 
-        if( !this.authentication && ( msg.flags & ServerCommon.ProcessTypes.Authentication.flag ) > 0 )
+        if( !this.authentication && ( msg.flags & Common.ProcessTypes.Authentication.flag ) > 0 )
         {
             this.spawnProcess({
-                type: ServerCommon.ProcessTypes.Authentication
+                type: Common.ProcessTypes.Authentication
             }, connection);
         }
     },

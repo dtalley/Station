@@ -1,15 +1,7 @@
-var _ = require("lodash");
-var net = require('net');
-var ServerCommon = require(__dirname + "/common.js");
-var EventEmitter = require("events").EventEmitter;
-var Log = require(__dirname + "/log.js");
-var Processor = require(__dirname + "/processor.js").Processor;
-var conf = require(__dirname + "/conf.js");
-
-var messages = require(conf.get("messageFile"));
-
 function Connection(multiple, type) {
     _.bindAll(this);
+
+    this.messages = require(conf.get("messageFile"));
 
     if( !multiple )
     {
@@ -49,7 +41,7 @@ function Connection(multiple, type) {
 
     this.verified = false;
 
-    this.processor = new Processor();
+    this.processor = new Processor(this.messages);
     this.processor.emitter.on("message", this.onMessage);
     this.processor.emitter.on("error", this.onError);
 }
@@ -58,30 +50,20 @@ Connection.prototype = {};
 
 _.extend(Connection.prototype, {
     onMessage: function(msg) {
-        if( msg.id === messages.Hello.id && !this.verified )
+        if( msg.id === this.messages.Hello.id && !this.verified )
         {
-            var type = ServerCommon.ProcessIndex[msg.type];
-            Log.info("Received 'Hello' message from remote '" + type.title + "' server.");
-
             if( this.remoteType === null )
             {
-                if( msg.type >= ServerCommon.ProcessIndex.length )
-                {
-                    this.emitter.emit("reject", this, "Invalid process type ID.");
-                    return;
-                }
-
-                this.remoteType = ServerCommon.ProcessIndex[msg.type];
-
+                this.remoteType = msg.type;
                 this.spawnId = msg.spawnId;
             }
-            else if( msg.type === this.remoteType.id )
+            else if( msg.type === this.remoteType )
             {
-                Log.info("Responding with 'Hello' message to verified remote '" + type.title + "'.");
+                Log.info("Responding with 'Hello' message to verified remote '" + Common.getProcessTitle(msg.type) + "'.");
 
-                var message = messages.Hello.create();
+                var message = this.messages.Hello.create();
                 message.build = 0;
-                message.type = this.localType.id;
+                message.type = this.localType;
                 message.spawnId = conf.get("spawnId");
                 
                 this.sendMessage(message);
@@ -152,9 +134,9 @@ _.extend(Connection.prototype, {
     },
 
     verify: function(options) {
-        var message = messages.Hello.create();
+        var message = this.messages.Hello.create();
         message.build = 0;
-        message.type = this.localType.id;
+        message.type = this.localType;
         message.spawnId = 0;
         
         this.sendMessage(message);
