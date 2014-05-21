@@ -6,14 +6,23 @@ function Processor(messages) {
     this.bufferOffset = 0;
     this.bufferStaged = false;
 
-    this.messages = messages;
+    if( this.buffer instanceof ArrayBuffer )
+    {
+        this.buffer.imbue();
+    }
 
-    this.emitter = new EventEmitter();
+    this.messages = messages;
 }
 
-Processor.prototype = {};
+Processor.prototype = {
+    onMessage: function(message) {
 
-_.extend(Processor.prototype, {
+    },
+
+    onError: function(text, error) {
+
+    },
+
     process: function(data) {
         data.copy(this.buffer, this.bufferOffset, 0, data.length);
         this.bufferOffset += data.length;
@@ -34,28 +43,35 @@ _.extend(Processor.prototype, {
         {
             var messageClass = this.messages.index[this.targetId];
             
-            if( !messageClass || !messageClass.create )
+            if( !messageClass || !messageClass.unpack )
             {
-                this.emitter.emit("error", "Invalid message ID received: " + this.targetId);
+                this.onError("Invalid message ID received: " + this.targetId);
             }
             else
             {
-                var message = messageClass.create(this.buffer);
-
                 try
                 {
-                    message.unpack();
-
-                    this.emitter.emit("message", message);
+                    var obj = messageClass.unpack(this.buffer);
                 }
                 catch(e)
                 {
-                    this.emitter.emit("error", "Could not unpack message: " + this.targetId);
-                    Log.error(e.stack);
+                    this.onError("Could not unpack message: " + this.targetId, e);
+                    return;
                 }
+
+                this.onMessage(obj);
             }
 
-            this.bufferOffset = 0;
+            if( this.bufferOffset > this.targetSize )
+            {
+                this.buffer.copy(this.buffer, 0, 0, this.bufferOffset - this.targetSize);
+                this.bufferOffset = this.bufferOffset - this.targetSize;
+            }
+            else
+            {
+                this.bufferOffset = 0;
+            }
+
             this.bufferStaged = false;
         }
     },
@@ -63,7 +79,12 @@ _.extend(Processor.prototype, {
     destroy: function() {
         this.messages.returnBuffer(this.buffer);
     }
-});
+};
 
-module.exports.Processor = Processor;
+var module = module || undefined;
+
+if( module && module.exports )
+{
+    module.exports.Processor = Processor;
+}
 

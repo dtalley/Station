@@ -6,10 +6,7 @@ var _ = require("lodash");
 //Common modules
 var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
-
-//Generated common modules
-var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
-var conf = GeneratedCommon.ConfigurationManager;
+var conf = require(__dirname + "/../common/conf.js");
 
 //Set up our configuration
 conf.init(__dirname, {
@@ -20,6 +17,14 @@ function Authentication() {
     _.bindAll(this);
 
     this.server = new Server({
+        listeners: [
+            {
+                name: "client",
+                port: conf.get("ports:authentication:client"),
+                protocol: "websockets"
+            }
+        ],
+
         type: Common.ProcessTypes.Authentication
     });
 

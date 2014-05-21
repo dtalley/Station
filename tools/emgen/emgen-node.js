@@ -8,10 +8,6 @@ messages.index = [];
 var bufferList = [];
 var maxBufferSize = 128000;
 
-var convertBuffer = new ArrayBuffer(8);
-var floatArray = new Float32Array(convertBuffer);
-var intArray = new Uint16Array(convertBuffer);
-
 function getBuffer() {
     if( bufferList.length == 0 )
     {
@@ -29,44 +25,4 @@ function returnBuffer(buffer) {
     }
 }
 messages.returnBuffer = returnBuffer;
-
-function MessagePrototype(name, id) {
-    this.name = name;
-    this.id = id;
-};
-
-MessagePrototype.prototype.store = function(buffer) {
-    this.buffer = buffer || getBuffer();
-    this.bufferOwned = true;
-    if( buffer )
-    {
-        this.bufferOwned = false;
-    }
-};
-
-MessagePrototype.prototype.retain = function() {
-    if( this.references === undefined )
-    {
-        this.references = 1;
-    }
-    else
-    {
-        this.references++;
-    }
-};
-
-MessagePrototype.prototype.release = function() {
-    if( this.references === undefined && this.bufferOwned )
-    {
-        returnBuffer(this.buffer);
-    }
-    else
-    {
-        this.references--;
-        if( this.references <= 0 && this.bufferOwned )
-        {
-            returnBuffer(this.buffer);
-        }
-    }
-};
 

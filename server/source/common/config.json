@@ -3,11 +3,11 @@
         "master": 12000,
 
         "gateway": {
-            "client": 8081
+            "client": 12002
         },
 
         "authentication": {
-            "client": 8080
+            "client": 12003
         }
     },
 

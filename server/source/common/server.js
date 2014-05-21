@@ -9,15 +9,13 @@ var _ = require("lodash");
 var Common = require(__dirname + "/common.js");
 var Listener = require(__dirname + "/listener.js").Listener;
 var Log = require(__dirname + "/log.js").Log;
-
-//Generated common modules
-var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
-var conf = GeneratedCommon.ConfigurationManager;
-var Connection = GeneratedCommon.Connection;
+var conf = require(__dirname + "/conf.js");
+var Connection = require(__dirname + "/connection.js").Connection;
 
 function Server(options) {
     _.bindAll(this);
 
+    this.messages = require(conf.get("messageFile"));
     this.emitter = new EventEmitter();
 
     this._config = _.defaults({}, options, {
@@ -36,7 +34,8 @@ _.extend(Server.prototype, {
         this._config.listeners.forEach(function(listener){
             listener.listener = new Listener({
                 port: listener.port,
-                type: this._config.type
+                type: this._config.type,
+                protocol: listener.protocol
             });
 
             listener.listener.start();
@@ -53,8 +52,9 @@ _.extend(Server.prototype, {
             this.masterConnection = new Connection({
                 host: this.target.masterAddress,
                 port: conf.get("ports:master"),
-                remoteType: Common.ProcessTypes.Master.id
-            }, this._config.type.id);
+                remoteType: Common.ProcessTypes.Master.id,
+                protocol: "default"
+            }, null, this.messages, this._config.type.id);
 
             Log.info("Connecting to Master at " + this.masterConnection.host + ":" + this.masterConnection.port);
 

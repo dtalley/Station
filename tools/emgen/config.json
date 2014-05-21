@@ -1,8 +1,13 @@
 {
     "projects": {
         "client": {
-            "type": "node",
-            "path": "client/source"
+            "type": "web",
+            "path": "client/source/generated"
+        },
+
+        "client_index": {
+            "type": "index",
+            "path": "client/source/generated"
         },
 
         "drone": {
@@ -29,10 +34,16 @@
     "groups": {
         "all": [
             "client",
+            "client_index",
             "drone",
             "master",
             "gateway",
             "authentication"
+        ],
+
+        "clients": [
+            "client",
+            "client_index"
         ]
     },
 

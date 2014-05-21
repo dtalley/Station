@@ -10,10 +10,7 @@ var _ = require("lodash");
 var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
 var Log = require(__dirname + "/../common/log.js").Log;
-
-//Generated common modules
-var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
-var conf = GeneratedCommon.ConfigurationManager;
+var conf = require(__dirname + "/../common/conf.js");
 
 //Set up our configuration
 conf.init(__dirname, {
@@ -138,8 +135,6 @@ _.extend(Drone.prototype, {
                 message.type = config.type;
 
                 masterConnection.sendMessage(message);
-
-                message.release();
             }
         });
     },
@@ -149,8 +144,6 @@ _.extend(Drone.prototype, {
         message.flags = this.processFlags;
 
         connection.sendMessage(message);
-
-        message.release();
     },
 
     onMessage: function(message, connection) {

@@ -24,12 +24,43 @@ var walk = function(dir, done) {
   });
 };
 
-var spawn = require("child_process").spawn;
+var exec = require("child_process").exec;
 var zip = new require('node-zip')();
 var usePath = __dirname + path.sep + ".." + path.sep + ".." + path.sep + "client" + path.sep;
 var sourcePath = usePath + "source";
 
 module.exports.build = function() {
+    emgen();
+}
+
+function emgen() {
+    exec("emgen", function(err, stdout, stderr){
+        if(err)
+        {
+            console.log(stderr);
+            return;
+        }
+
+        console.log(stdout);
+        condense();
+    });
+}
+
+function condense() {
+    exec("condense", function(err, stdout, stderr){
+        if(err)
+        {
+            console.log(stderr);
+            return;
+        }
+
+        console.log(stdout);
+        build();
+    });
+}
+
+function build() {
+    console.log("Building client...");
     walk(sourcePath, function(err, files){
         if(err)
         {
@@ -88,5 +119,6 @@ module.exports.build = function() {
             });
         }
 
+        console.log("Client built.");
     });
 }

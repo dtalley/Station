@@ -1,18 +1,25 @@
 {
-    "projects": {
-        "server": {
-            "path": "server/source/common"
+    "files": [
+        {
+            "input": [
+                "common/source/server_header.js",
+                "common/source/processor.js"
+            ],
+
+            "output": [
+                "server/source/common/generated_processor.js"
+            ]
         },
 
-        "client": {
-            "path": "client/source/common"
-        }
-    },
+        {
+            "input": [
+                "common/source/client_header.js",
+                "common/source/processor.js"
+            ],
 
-    "files": [
-        "common/source/header.js",
-        "common/source/conf.js",
-        "common/source/processor.js",
-        "common/source/connection.js"
+            "output": [
+                "client/source/generated/generated_processor.js"
+            ]
+        }
     ]
 }

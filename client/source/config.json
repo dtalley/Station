@@ -1,0 +1,6 @@
+{
+    "auth": {
+        "host": "localhost",
+        "port": 12003
+    }
+}

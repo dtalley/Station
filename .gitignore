@@ -1,8 +1,7 @@
 server/source/node_modules/
 tools/build/node_modules/
 *.sublime-workspace
-generated_messages*.*
-generated_common*.*
+generated_*.*
 client/nw/
 client/dist/
 *.lnk

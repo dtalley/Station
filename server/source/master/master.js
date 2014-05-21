@@ -7,10 +7,7 @@ var _ = require("lodash");
 var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
 var Log = require(__dirname + "/../common/log.js").Log;
-
-//Generated common modules
-var GeneratedCommon = require(__dirname + "/../common/generated_common_server.js");
-var conf = GeneratedCommon.ConfigurationManager;
+var conf = require(__dirname + "/../common/conf.js");
 
 //Set up our configuration
 conf.init(__dirname, {
@@ -25,7 +22,9 @@ function Master() {
     this.server = new Server({
         listeners: [
             {
-                port: conf.get("ports:master")
+                name: "master",
+                port: conf.get("ports:master"),
+                protocol: "default"
             }
         ],
 
@@ -88,7 +87,6 @@ _.extend(Master.prototype, {
     },
 
     onMessage: function(message, connection) {
-        Log.trace(connection.remoteType);
         switch(connection.remoteType)
         {
             case Common.ProcessTypes.Drone.id:
@@ -152,8 +150,6 @@ _.extend(Master.prototype, {
         Log.info("Requesting Drone to spawn a '" + config.type.title + "' process with spawn ID #" + message.spawnId);
 
         drone.sendMessage(message);
-
-        message.release();
 
         this.spawnRequests[message.spawnId] = config;
         config.time = new Date().getTime();

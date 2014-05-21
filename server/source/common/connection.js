@@ -1,19 +1,49 @@
-function Connection(multiple, type) {
+//Node modules
+var net = require('net');
+var EventEmitter = require("events").EventEmitter;
+
+//Third-party modules
+var _ = require("lodash");
+var ws = require("ws");
+
+//Common modules
+var Common = require(__dirname + "/common.js");
+var Log = require(__dirname + "/log.js").Log;
+var conf = require(__dirname + "/conf.js");
+
+//Generated common modules
+var Processor = require(__dirname + "/generated_processor.js").Processor;
+
+function Connection(config, socket, messages, type) {
     _.bindAll(this);
 
-    this.messages = require(conf.get("messageFile"));
-
-    if( !multiple )
+    if( !config || !messages )
     {
         Log.trace("Invalid connection created.");
         return;
     }
 
+    this.messages = messages;
     this.emitter = new EventEmitter();
 
-    if( multiple instanceof net.Socket )
+    this.protocol = config.protocol;
+    this.sendMessage = this.sendMessageDefault;
+    
+    if( this.protocol === "websockets" )
     {
-        this.socket = multiple;
+        this.socket = socket;
+
+        this.host = this.socket._socket.remoteAddress;
+        this.port = this.socket._socket.remotePort;
+        this.remoteType = null;
+
+        this.claimed = false;
+
+        this.sendMessage = this.sendMessageWebSockets;
+    }
+    else if( socket )
+    {
+        this.socket = socket;
 
         this.host = this.socket.remoteAddress;
         this.port = this.socket.remotePort;
@@ -25,9 +55,9 @@ function Connection(multiple, type) {
     {
         this.socket = new net.Socket();
 
-        this.host = multiple.host;
-        this.port = multiple.port;
-        this.remoteType = multiple.remoteType;
+        this.host = config.host;
+        this.port = config.port;
+        this.remoteType = config.remoteType;
 
         this.claimed = true;
     }
@@ -37,18 +67,29 @@ function Connection(multiple, type) {
     this.socket.on("end", this.onSocketHalfClosed);
     this.socket.on("close", this.onSocketDisconnected);
     this.socket.on("error", this.onSocketError);
-    this.socket.on("data", this.onSocketData);
+
+    if( this.protocol === "default" )
+    {
+        this.socket.on("data", this.onSocketData);
+    }
+
+    if( this.protocol === "websockets" )
+    {
+        this.socket.on("message", this.onSocketMessage);
+        this.socket.on("ping", this.onSocketPing);
+        this.socket.on("pong", this.onSocketPong);
+    }
 
     this.verified = false;
 
     this.processor = new Processor(this.messages);
-    this.processor.emitter.on("message", this.onMessage);
-    this.processor.emitter.on("error", this.onError);
+    this.processor.onMessage = this.onMessage;
+    this.processor.onError = this.onError;
+
+    this.packInfo = {};
 }
 
-Connection.prototype = {};
-
-_.extend(Connection.prototype, {
+Connection.prototype = {
     onMessage: function(msg) {
         if( msg.id === this.messages.Hello.id && !this.verified )
         {
@@ -87,9 +128,14 @@ _.extend(Connection.prototype, {
         }
     },
 
-    onError: function(error) {
+    onError: function(text, error) {
         Log.error(error);
-    },
+
+        if( error )
+        {
+            console.log(error);
+        }
+    },  
 
     claim: function() {
         this.claimed = true;
@@ -101,7 +147,14 @@ _.extend(Connection.prototype, {
     },
 
     disconnect: function() {
-        this.socket.end();
+        if( this.protocol === "default" )
+        {
+            this.socket.end();
+        }
+        else if( this.protocol === "websockets" )
+        {
+            this.socket.terminate();
+        }
         this.verified = false;
     },
 
@@ -126,11 +179,26 @@ _.extend(Connection.prototype, {
     onSocketError: function(e) {
         Log.info("Socket to " + this.host + ":" + this.port + " encountered an error...");
 
-        this.socket.end();
+        this.disconnect();
     },
 
     onSocketData: function(data) {
         this.processor.process(data);
+    },
+
+    onSocketMessage: function(data, flags) {
+        if( flags.binary )
+        {
+            this.processor.process(data);
+        }
+    },
+
+    onSocketPing: function(ping) {
+        this.socket.pong();
+    },
+
+    onSocketPong: function(pong) {
+
     },
 
     verify: function(options) {
@@ -142,10 +210,20 @@ _.extend(Connection.prototype, {
         this.sendMessage(message);
     },
 
-    sendMessage: function(message) {
-        var size = message.pack();
+    sendMessageDefault: function(message) {
+        var buffer = this.messages.index[message.id].pack(message, null, null, this.packInfo);
 
-        this.socket.write(message.buffer.slice(0, size));
+        this.socket.write(buffer.slice(0, this.packInfo.size));
+
+        this.messages.returnBuffer(buffer);
+    },
+
+    sendMessageWebSockets: function(message) {
+        var buffer = this.messages.index[message.id].pack(message, null, null, this.packInfo);
+
+        this.socket.send(buffer.slice(0, this.packInfo.size), {binary:true});
+
+        this.messages.returnBuffer(buffer);
     },
 
     destroy: function() {
@@ -157,6 +235,6 @@ _.extend(Connection.prototype, {
 
         this.processor.destroy();
     }
-});
+};
 
 module.exports.Connection = Connection;

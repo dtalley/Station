@@ -9,14 +9,17 @@ for( var key in config.projects )
     
     var file = fs.openSync(file, 'w');
     
-    var code = fs.openSync(__dirname + "/emgen-" + project.type + ".js", 'r');
-    var read = new Buffer(1024);
-    var bytes = 0;
-    while(bytes = fs.readSync(code, read, 0, read.length))
+    if( fs.existsSync(__dirname + "/emgen-" + project.type + ".js") )
     {
-        fs.writeSync(file, read, 0, bytes);
+        var code = fs.openSync(__dirname + "/emgen-" + project.type + ".js", 'r');
+        var read = new Buffer(1024);
+        var bytes = 0;
+        while(bytes = fs.readSync(code, read, 0, read.length))
+        {
+            fs.writeSync(file, read, 0, bytes);
+        }
+        fs.closeSync(code);
     }
-    fs.closeSync(code);
 
     project.file = file;
     project.name = key;
@@ -120,73 +123,53 @@ for( var key in storedMessages )
             padding = "-" + padding;
         }
 
-        if( project.type == "node" )
+        if( project.type == "index" )
+        {
+            write(name, "module.exports." + key + " = {\n");
+            write(name, "\tid: " + message.id + ",\n");
+            write(name, "\tcreate: function(){return {id:" + message.id + "};},\n");
+            write(name, "};\n\n");
+        }
+
+        if( project.type == "node" || project.type == "web" )
         {
             write(
                 name,
                 "/* START - " + padding + " */\n"
             );
 
-            write(
-                name,
-                "messages." + key + " = function(buffer) {\n"
-            );
-
-            write(name, "\tthis.store(buffer);\n");
-            write(name, "\tthis.retain();\n\n");
-
-            write(name, "\t//Properties\n");
-            for( var property in message.properties )
+            var prefix = "messages";
+            var index = "messages.index";
+            if( project.type == "web" )
             {
-                if( property == "id" )
-                {
-                    throw new Error("Messages cannot have a property named 'id'.");
-                }
-                else if( property == "name" )
-                {
-                    throw new Error("Messages cannot have a property named 'name'.");
-                }
-
-                write(
-                    name,
-                    "\tthis." + property + " = null; //" + message.properties[property] + "\n"
-                );
+                prefix = "messageManager";
+                index = "messageManager.index";
             }
 
             write(
                 name,
-                "};\n" +
-                "messages.index[" + message.id + "] = messages." + key + ";\n\n"
+                prefix + "." + key + " = {};\n" +
+                index + "[" + message.id + "] = " + prefix + "." + key + ";\n\n"
             );
 
             write(
                 name,
-                "messages." + key + ".prototype = new MessagePrototype(\"" + key + "\", " + message.id + ");\n" + 
-                "messages." + key + ".create = function(buffer) { return new messages." + key + "(buffer); };\n" +
-                "messages." + key + ".id = " + message.id + ";\n"
+                prefix + "." + key + ".create = function() { return { id: " + message.id + " } };\n" +
+                prefix + "." + key + ".id = " + message.id + ";\n"
             );
         }
 
         if( projectFlags.pack )
         {
-            if( project.type == "node" )
+            if( project.type == "node" || project.type == "web" )
             {
                 write(
                     name,
-                    "\nmessages." + key + ".prototype.pack = function(buffer, offset, obj) {\n" +
-                    "\tobj = obj || this;\n" +
-                    "\tbuffer = buffer || this.buffer;\n" +
-                    "\tif(offset === undefined)offset = 6;\n" +
-                    "\tif(!buffer)throw new Error(\"No buffer to pack message into!\");\n\n"
+                    "\n" + prefix + "." + key + ".pack = function(obj, buffer, offset, info, internal) {\n" +
+                    "\tbuffer = buffer || " + prefix + ".getBuffer();\n" +
+                    "\tif(!internal)offset = 6;\n" +
+                    "\tif(!obj)throw new Error(\"No object to serialize!\");\n\n"
                 );
-
-                for( var property in message.properties )
-                {
-                    write(
-                        name,
-                        "\tif(obj." + property + " === null) throw new Error(\"Incomplete message '" + key + "' is missing property '" + property + "'.\");\n"
-                    );
-                }
 
                 write(name, "\n\tbuffer.writeUInt16BE(" + message.id + ", 0, true); //Write message ID\n");
                 write(name, "\tbuffer.writeUInt32BE(0, 2, true); //Write message size placeholder\n\n");
@@ -281,7 +264,7 @@ for( var key in storedMessages )
                         default:
                             if( storedMessages[type] )
                             {
-                                write(name, spacer + "offset += messages." + type + ".prototype.pack(buffer, offset, obj." + property + arrayAdd + ");\n");
+                                write(name, spacer + "offset += " + prefix + "." + type + ".pack(obj." + property + arrayAdd + ", buffer, offset, null, true);\n");
                             }
                             else
                             {
@@ -328,7 +311,8 @@ for( var key in storedMessages )
 
                 write(
                     name,
-                    "\treturn offset;\n" +
+                    "\tif(info) info.size = offset;\n" +
+                    "\treturn internal ? offset : buffer;\n" +
                     "};\n"
                 );
             }
@@ -336,14 +320,14 @@ for( var key in storedMessages )
 
         if( projectFlags.unpack )
         {
-            if( project.type == "node" )
+            if( project.type == "node" || project.type == "web" )
             {
                 write(
                     name,
-                    "\nmessages." + key + ".prototype.unpack = function(buffer, offset, obj) {\n" +
-                    "\tobj = obj || this;\n" +
-                    "\tbuffer = buffer || this.buffer;\n" +
-                    "\tif(offset === undefined)offset = 6;\n" +
+                    "\n" + prefix + "." + key + ".unpack = function(buffer, offset, obj, internal) {\n" +
+                    "\tobj = obj || {};\n" +
+                    "\tobj.id = " + message.id + "\n" +
+                    "\tif(!internal)offset = 6;\n" +
                     "\tif(!buffer)throw new Error(\"No buffer to unpack message from!\");\n\n"
                 );
 
@@ -376,6 +360,7 @@ for( var key in storedMessages )
 
                         spacer = "\t\t";
 
+                        write(name, "\tobj." + property + " = [];\n");
                         write(name, "\tfor(var i = 0; i < " + arrayCount + "; i++) {\n");
                     }
 
@@ -451,7 +436,8 @@ for( var key in storedMessages )
                         default:
                             if( storedMessages[type] )
                             {
-                                write(name, spacer + "offset += messages." + type + ".prototype.pack(buffer, offset, obj." + property + arrayAdd + ");\n");
+                                write(name, spacer + "obj." + property + arrayAdd + " = {};\n");
+                                write(name, spacer + "offset += " + prefix + "." + type + ".unpack(obj." + property + arrayAdd + ", buffer, offset, true);\n");
                             }
                             else
                             {
@@ -497,13 +483,13 @@ for( var key in storedMessages )
 
                 write(
                     name,
-                    "\treturn offset;\n" +
+                    "\treturn internal ? offset : obj;\n" +
                     "};\n"
                 );
             }
         }
 
-        if( project.type == "node" )
+        if( project.type == "node" || project.type == "web" )
         {
             write(
                 name,
