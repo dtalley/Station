@@ -49,6 +49,7 @@
 
     "files": [
         "common/source/messages_common.json",
+        "common/source/messages_auth.json",
         "server/source/common/messages/messages_master.json"
     ]
 }

@@ -57,12 +57,17 @@ function Connection(config, socket, messages, type) {
 
         this.host = config.host;
         this.port = config.port;
-        this.remoteType = config.remoteType;
+        this.remoteType = null;
 
         this.claimed = true;
     }
 
+    if(config.remoteType===undefined)config.remoteType = null;
+    this.expectedType = config.remoteType;
     this.localType = type;
+
+    this.helloSent = false;
+    this.helloReceived = false;
 
     this.socket.on("end", this.onSocketHalfClosed);
     this.socket.on("close", this.onSocketDisconnected);
@@ -91,16 +96,23 @@ function Connection(config, socket, messages, type) {
 
 Connection.prototype = {
     onMessage: function(msg) {
-        if( msg.id === this.messages.Hello.id && !this.verified )
+        if( msg.id === this.messages.Hello.id && !this.helloReceived )
         {
-            if( this.remoteType === null )
+            this.helloReceived = true;
+            Log.info("Received 'Hello' message from remote '" + Common.getProcessTitle(msg.type) + "' connection.");
+
+            if( this.expectedType !== null && msg.type !== this.expectedType )
             {
-                this.remoteType = msg.type;
-                this.spawnId = msg.spawnId;
+                this.emitter.emit("reject", this, "Unexpected process type ID.");
+                return;
             }
-            else if( msg.type === this.remoteType )
+
+            this.remoteType = msg.type;
+            this.spawnId = msg.spawnId;
+
+            if( !this.helloSent )
             {
-                Log.info("Responding with 'Hello' message to verified remote '" + Common.getProcessTitle(msg.type) + "'.");
+                Log.info("Responding with 'Hello' message to verified remote '" + Common.getProcessTitle(msg.type) + "' connection.");
 
                 var message = this.messages.Hello.create();
                 message.build = 0;
@@ -108,11 +120,8 @@ Connection.prototype = {
                 message.spawnId = conf.get("spawnId");
                 
                 this.sendMessage(message);
-            }
-            else
-            {
-                this.emitter.emit("reject", this, "Unexpected process type ID.");
-                return;
+
+                this.helloSent = true;
             }
 
             this.verified = true;
@@ -201,13 +210,18 @@ Connection.prototype = {
 
     },
 
-    verify: function(options) {
+    verify: function(expectedType) {
+        if(expectedType===undefined)expectedType=null;
+        this.expectedType = expectedType;
+
         var message = this.messages.Hello.create();
         message.build = 0;
         message.type = this.localType;
         message.spawnId = 0;
         
         this.sendMessage(message);
+
+        this.helloSent = true;
     },
 
     sendMessageDefault: function(message) {

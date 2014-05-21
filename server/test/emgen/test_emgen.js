@@ -22,14 +22,12 @@ testPack.test15 = "false";
 testPack.test16 = 1;
 testPack.test17 = 0;
 
-var size = testPack.pack();
+var buffer = messages.SimpleTest.pack(testPack);
 
-buffer = new Buffer(testPack.buffer.length + 1);
-testPack.buffer.copy(buffer, 0, 0, size);
+newBuffer = new Buffer(buffer.length);
+buffer.copy(newBuffer, 0, 0, size);
 
-testUnpack = messages.SimpleTest.create(buffer);
-
-testUnpack.unpack();
+testUnpack = messages.SimpleTest.unpack(newBuffer);
 
 test.test("Message ID and size of simple test message should be accurate", function(){
     test.assert(testPack.buffer.readUInt16BE(0), testPack.id);
@@ -60,8 +58,5 @@ test.test("Simple test message unpacked should match packed simple test massage"
     test.assert(testUnpack.test16, true);
     test.assert(testUnpack.test17, false);
 });
-
-testPack.release();
-testUnpack.release();
 
 test.report();

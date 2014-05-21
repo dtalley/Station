@@ -39,7 +39,28 @@ Client.prototype = {
     },
 
     handleMessage: function(message) {
+        console.log(message);
+        if( message.id = messages.LoginRequired.id )
+        {
+            var login = messages.ClientLogin.create();
+            login.test1 = -46;
+            login.test2 = -521;
+            login.test3 = -80344;
+            login.test5 = 243;
+            login.test6 = 51233;
+            login.test7 = 101884;
+            login.test9 = -1.3344454;
+            login.test10 = 8847758475847.11212122221;
+            login.test11 = "Test string!";
+            login.test12 = true;
+            login.test13 = false;
+            login.test14 = "true";
+            login.test15 = "false";
+            login.test16 = 1;
+            login.test17 = 0;
 
+            this.network.postMessage({type:"send", message:login});
+        }
     }
 };
 

@@ -11,9 +11,9 @@ function NetworkMessageManager() {
 
 NetworkMessageManager.prototype = {
     getBuffer: function() {
-        if( this.bufferList.length == 0 )
+        if( this.bufferList.length === 0 )
         {
-            return new ArrayBuffer(this.maxBufferSize);
+            return new ArrayBuffer(this.maxBufferSize).imbue();
         }
 
         return this.bufferList.pop();
@@ -33,3 +33,4 @@ if( module && module.exports )
 {
     module.exports = messageManager;
 }
+

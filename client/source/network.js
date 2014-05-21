@@ -1,6 +1,10 @@
 importScripts("generated/generated_messages_client.js");
 importScripts("generated/generated_processor.js");
 
+function trace(text) {
+    self.postMessage({trace:text});
+}
+
 function NetworkManager() {
     this.packInfo = {};
 
@@ -72,7 +76,7 @@ NetworkManager.prototype = {
         });
 
         self.postMessage({
-            trace: error
+            trace: "" + error
         });
     },
 
