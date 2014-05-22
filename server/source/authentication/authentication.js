@@ -6,6 +6,7 @@ var _ = require("lodash");
 //Common modules
 var Common = require(__dirname + "/../common/common.js");
 var Server = require(__dirname + "/../common/server.js").Server;
+var Log = require(__dirname + "/../common/log.js").Log;
 var conf = require(__dirname + "/../common/conf.js");
 
 //Set up our configuration
@@ -30,11 +31,9 @@ function Authentication() {
 
         type: Common.ProcessTypes.Authentication
     });
-
-    this.server.emitter.on("connect", this.onConnection);
-    this.server.emitter.on("message", this.onMessage);
-
     this.server.start();
+
+    this.server.listeners.client.emitter.on("connect", this.onClientConnection);
 }
 
 Authentication.prototype = {
@@ -42,75 +41,55 @@ Authentication.prototype = {
 };
 
 _.extend(Authentication.prototype, {
-    onConnection: function(listener, connection) {
+    onClientConnection: function(listener, connection) {
         connection.claim();
 
-        connection.emitter.on("verify", this.onConnectionVerified);
-        connection.emitter.on("reject", this.onConnectionRejected);
-        connection.emitter.on("disconnect", this.onConnectionLost);
+        connection.emitter.on("verify", this.onClientConnectionVerified);
+        connection.emitter.on("reject", this.onClientConnectionRejected);
+        connection.emitter.on("disconnect", this.onClientConnectionLost);
 
-        if( listener.name === "client" )
-        {
-            connection.verify();
-        }
-        else
-        {
-            connection.verify();
-        }
+        connection.verify(Common.ProcessTypes.Client.id);
     },
 
-    onConnectionVerified: function(connection) {
-        switch(connection.remoteType)
+    onClientConnectionVerified: function(connection) {
+        var message = messages.LoginRequired.create();
+        connection.sendMessage(message);
+
+        connection.emitter.on("message", this.onClientMessage);
+    },
+
+    onClientConnectionRejected: function(connection, reason) {
+        Log.warn("Connection rejected: " + reason);
+
+        this.closeClientConnection(connection);
+    },
+
+    onClientConnectionLost: function(connection) {
+        this.closeClientConnection(connection);
+    },
+
+    closeClientConnection: function(connection) {
+        connection.emitter.removeListener("verify", this.onClientConnectionVerified);
+        connection.emitter.removeListener("reject", this.onClientConnectionRejected);
+        connection.emitter.removeListener("disconnect", this.onClientConnectionLost);
+        connection.emitter.removeListener("message", this.onClientMessage);
+
+        connection.destroy();
+    },
+
+    onClientMessage: function(message, connection) {
+        switch(message.id)
         {
-            case Common.ProcessTypes.Client.id:
+            case messages.ClientLogin.id:
             {
-                var message = messages.LoginRequired.create();
-                message.test1 = -46;
-                message.test2 = -521;
-                message.test3 = -80344;
-                message.test5 = 243;
-                message.test6 = 51233;
-                message.test7 = 101884;
-                message.test9 = -1.3344454;
-                message.test10 = 8847758475847.11212122221;
-                message.test11 = "Test string!";
-                message.test12 = true;
-                message.test13 = false;
-                message.test14 = "true";
-                message.test15 = "false";
-                message.test16 = 1;
-                message.test17 = 0;
+                var message = messages.LoginTicket.create();
 
                 connection.sendMessage(message);
             }
             break;
-        }
-    },
 
-    onConnectionRejected: function(connection, reason) {
-
-    },
-
-    onConnectionLost: function(connection) {
-        
-    },
-
-    onMessage: function(message, connection) {
-        console.log(message);
-        switch(connection.remoteType)
-        {
-            case Common.ProcessTypes.Client.id:
-            {
-                switch(message.id)
-                {
-                    case messages.ClientLogin.id:
-                    {
-                        console.log("Yay!");
-                    }
-                    break;
-                }
-            }
-            break;
+            default:
+                console.log(message);
         }
     }
 });

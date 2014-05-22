@@ -14,10 +14,10 @@ var conf = require(__dirname + "/conf.js");
 //Generated common modules
 var Processor = require(__dirname + "/generated_processor.js").Processor;
 
-function Connection(config, socket, messages, type) {
+function Connection(messages) {
     _.bindAll(this);
 
-    if( !config || !messages )
+    if( !messages )
     {
         Log.trace("Invalid connection created.");
         return;
@@ -25,65 +25,6 @@ function Connection(config, socket, messages, type) {
 
     this.messages = messages;
     this.emitter = new EventEmitter();
-
-    this.protocol = config.protocol;
-    this.sendMessage = this.sendMessageDefault;
-    
-    if( this.protocol === "websockets" )
-    {
-        this.socket = socket;
-
-        this.host = this.socket._socket.remoteAddress;
-        this.port = this.socket._socket.remotePort;
-        this.remoteType = null;
-
-        this.claimed = false;
-
-        this.sendMessage = this.sendMessageWebSockets;
-    }
-    else if( socket )
-    {
-        this.socket = socket;
-
-        this.host = this.socket.remoteAddress;
-        this.port = this.socket.remotePort;
-        this.remoteType = null;
-
-        this.claimed = false;
-    }
-    else
-    {
-        this.socket = new net.Socket();
-
-        this.host = config.host;
-        this.port = config.port;
-        this.remoteType = null;
-
-        this.claimed = true;
-    }
-
-    if(config.remoteType===undefined)config.remoteType = null;
-    this.expectedType = config.remoteType;
-    this.localType = type;
-
-    this.helloSent = false;
-    this.helloReceived = false;
-
-    this.socket.on("end", this.onSocketHalfClosed);
-    this.socket.on("close", this.onSocketDisconnected);
-    this.socket.on("error", this.onSocketError);
-
-    if( this.protocol === "default" )
-    {
-        this.socket.on("data", this.onSocketData);
-    }
-
-    if( this.protocol === "websockets" )
-    {
-        this.socket.on("message", this.onSocketMessage);
-        this.socket.on("ping", this.onSocketPing);
-        this.socket.on("pong", this.onSocketPong);
-    }
 
     this.verified = false;
 
@@ -95,6 +36,67 @@ function Connection(config, socket, messages, type) {
 }
 
 Connection.prototype = {
+    configure: function(config, socket, type) {
+        this.protocol = config.protocol;
+        this.sendMessage = this.sendMessageDefault;
+        
+        if( this.protocol === "websockets" )
+        {
+            this.socket = socket;
+
+            this.host = this.socket._socket.remoteAddress;
+            this.port = this.socket._socket.remotePort;
+            this.remoteType = null;
+
+            this.claimed = false;
+
+            this.sendMessage = this.sendMessageWebSockets;
+        }
+        else if( socket )
+        {
+            this.socket = socket;
+
+            this.host = this.socket.remoteAddress;
+            this.port = this.socket.remotePort;
+            this.remoteType = null;
+
+            this.claimed = false;
+        }
+        else
+        {
+            this.socket = new net.Socket();
+
+            this.host = config.host;
+            this.port = config.port;
+            this.remoteType = null;
+
+            this.claimed = true;
+        }
+
+        if(config.remoteType===undefined)config.remoteType = null;
+        this.expectedType = config.remoteType;
+        this.localType = type;
+
+        this.helloSent = false;
+        this.helloReceived = false;
+
+        this.socket.on("end", this.onSocketHalfClosed);
+        this.socket.on("close", this.onSocketDisconnected);
+        this.socket.on("error", this.onSocketError);
+
+        if( this.protocol === "default" )
+        {
+            this.socket.on("data", this.onSocketData);
+        }
+
+        if( this.protocol === "websockets" )
+        {
+            this.socket.on("message", this.onSocketMessage);
+            this.socket.on("ping", this.onSocketPing);
+            this.socket.on("pong", this.onSocketPong);
+        }
+    },
+
     onMessage: function(msg) {
         if( msg.id === this.messages.Hello.id && !this.helloReceived )
         {
@@ -103,7 +105,7 @@ Connection.prototype = {
 
             if( this.expectedType !== null && msg.type !== this.expectedType )
             {
-                this.emitter.emit("reject", this, "Unexpected process type ID.");
+                this.emitter.emit("reject", this, "Unexpected process type ID.  Received " + msg.type + ", expected " + this.expectedType);
                 return;
             }
 
@@ -175,7 +177,7 @@ Connection.prototype = {
 
     onSocketHalfClosed: function() {
         Log.info("Socket to " + this.host + ":" + this.port + " ended on remote end...");
-        this.socket.end();
+        this.disconnect();
         this.verified = false;
     },
 
@@ -241,13 +243,14 @@ Connection.prototype = {
     },
 
     destroy: function() {
-        this.socket.removeListener("end", this.socketHalfClosed);
-        this.socket.removeListener("close", this.socketDisconnected);
-        this.socket.removeListener("error", this.socketError);
+        this.socket.removeListener("end", this.onSocketHalfClosed);
+        this.socket.removeListener("close", this.onSocketDisconnected);
+        this.socket.removeListener("error", this.onSocketError);
 
-        this.socket.end();
+        this.disconnect();
+        this.socket = null;
 
-        this.processor.destroy();
+        this.emitter.emit("destroy", this);
     }
 };
 

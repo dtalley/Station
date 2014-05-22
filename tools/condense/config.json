@@ -2,7 +2,6 @@
     "files": [
         {
             "input": [
-                "common/source/server_header.js",
                 "common/source/processor.js"
             ],
 

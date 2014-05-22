@@ -14,17 +14,26 @@ conf.init(__dirname, {
     messageFile: __dirname + "/generated_messages_gateway.js"
 });
 
+//Pull out our messages registry
+var messages = require(conf.get("messageFile"));
+
 function Gateway() {
     _.bindAll(this);
 
     this.server = new Server({
+        listeners: [
+            {
+                name: "client",
+                port: conf.get("ports:gateway:client"),
+                protocol: "websockets"
+            }
+        ],
+
         type: Common.ProcessTypes.Gateway
     });
-
-    this.server.emitter.on("connect", this.onConnection);
-    this.server.emitter.on("message", this.onMessage);
-
     this.server.start();
+
+    this.server.listeners.client.emitter.on("connect", this.onClientConnection);
 }
 
 Gateway.prototype = {
@@ -32,30 +41,45 @@ Gateway.prototype = {
 };
 
 _.extend(Gateway.prototype, {
-    onConnection: function(listener, connection) {
+    onClientConnection: function(listener, connection) {
         connection.claim();
 
-        connection.emitter.on("verify", this.onConnectionVerified);
-        connection.emitter.on("reject", this.onConnectionRejected);
-        connection.emitter.on("disconnect", this.onConnectionLost);
+        connection.emitter.on("verify", this.onClientConnectionVerified);
+        connection.emitter.on("reject", this.onClientConnectionRejected);
+        connection.emitter.on("disconnect", this.onClientConnectionLost);
 
-        connection.verify();
+        connection.verify(Common.ProcessTypes.Client.id);
     },
 
-    onConnectionVerified: function(connection) {
-        
+    onClientConnectionVerified: function(connection) {
+        connection.emitter.on("message", this.onClientMessage);
     },
 
-    onConnectionRejected: function(connection, reason) {
+    onClientConnectionRejected: function(connection, reason) {
+        Log.warn("Connection rejected: " + reason);
 
+        this.closeClientConnection(connection);
     },
 
-    onConnectionLost: function(connection) {
-        
+    onClientConnectionLost: function(connection) {
+        this.closeClientConnection(connection);
     },
 
-    onMessage: function(message, connection) {
-        
+    closeClientConnection: function(connection) {
+        connection.emitter.removeListener("verify", this.onClientConnectionVerified);
+        connection.emitter.removeListener("reject", this.onClientConnectionRejected);
+        connection.emitter.removeListener("disconnect", this.onClientConnectionLost);
+        connection.emitter.removeListener("message", this.onClientMessage);
+
+        connection.destroy();
+    },
+
+    onClientMessage: function(message, connection) {
+        switch(message.id)
+        {
+            default:
+                console.log(message);
+        }
     }
 });
 

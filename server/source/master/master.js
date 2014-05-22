@@ -30,11 +30,9 @@ function Master() {
 
         type: Common.ProcessTypes.Master
     });
-
-    this.server.emitter.on("connect", this.onConnection);
-    this.server.emitter.on("message", this.onMessage);
-
     this.server.start();
+
+    this.server.listeners.master.emitter.on("connect", this.onConnection);
 }
 
 Master.prototype = {
@@ -60,9 +58,21 @@ _.extend(Master.prototype, {
     onConnectionVerified: function(connection) {
         switch(connection.remoteType)
         {
+            case Common.ProcessTypes.Drone.id:
+            {
+                this.addDroneServer(connection);
+            }
+            break;
+
             case Common.ProcessTypes.Gateway.id:
             {
                 this.addGatewayServer(connection);
+            }
+            break;
+
+            case Common.ProcessTypes.Authentication.id:
+            {
+                this.addAuthenticationServer(connection);
             }
             break;
         }
@@ -74,7 +84,7 @@ _.extend(Master.prototype, {
     },
 
     onConnectionRejected: function(connection, reason) {
-
+        this.closeConnection(connection);
     },
 
     onConnectionLost: function(connection) {
@@ -83,42 +93,58 @@ _.extend(Master.prototype, {
             case Common.ProcessTypes.Drone.id:
                 this.removeDroneServer(connection);
                 break;
+
+            case Common.ProcessTypes.Gateway.id:
+                this.removeGatewayServer(connection);
+                break;
+
+            case Common.ProcessTypes.Authentication.id:
+                this.removeAuthenticationServer(connection);
+                break;
         }
+
+        this.closeConnection(connection);
     },
 
-    onMessage: function(message, connection) {
-        switch(connection.remoteType)
+    closeConnection: function(connection) {
+        connection.emitter.removeListener("verify", this.onConnectionVerified);
+        connection.emitter.removeListener("reject", this.onConnectionRejected);
+        connection.emitter.removeListener("disconnect", this.onConnectionLost);
+        connection.emitter.removeListener("message", this.onMessage);
+
+        connection.destroy();
+    },
+
+    addDroneServer: function(connection) {
+        this.drones.push(connection);
+
+        connection.emitter.on("message", this.onDroneMessage);
+    },
+
+    onDroneMessage: function(message, connection) {
+        switch(message.id)
         {
-            case Common.ProcessTypes.Drone.id:
+            case messages.DroneIdentify.id:
             {
-                switch(message.id)
-                {
-                    case messages.DroneIdentify.id:
-                    {
-                        this.addDroneServer(message, connection);
-                    }
-                    break;
+                this.enableDroneServer(message, connection);
+            }
+            break;
 
-                    case messages.ProcessExited.id:
-                    {
-                        this.processExited(message);
-                    }
-                    break;
+            case messages.ProcessExited.id:
+            {
+                this.processExited(message);
+            }
+            break;
 
-                    case messages.ProcessSpawned.id:
-                    {
-                        this.processSpawned(message);
-                    }
-                    break;
-                }
+            case messages.ProcessSpawned.id:
+            {
+                this.processSpawned(message);
             }
             break;
         }
     },
 
-    addDroneServer: function(msg, connection) {
-        this.drones.push(connection);
-
+    enableDroneServer: function(msg, connection) {
         connection.flags = msg.flags;
 
         if( !this.gateway && ( msg.flags & Common.ProcessTypes.Gateway.flag ) > 0 )
@@ -137,9 +163,27 @@ _.extend(Master.prototype, {
     },
 
     removeDroneServer: function(connection) {
+        connection.emitter.removeListener("message", this.onDroneMessage);
+
         this.drones.splice(this.drones.indexOf(connection), 1);
 
         Log.warn("Master lost connection to Drone at " + connection.socket.remoteAddress + ":" + connection.socket.remotePort);
+    },
+
+    addAuthenticationServer: function(msg, connection) {
+
+    },
+
+    removeAuthenticationServer: function(connection) {
+
+    },
+
+    addGatewayServer: function(msg, connection) {
+
+    },
+
+    removeGatewayServer: function(connection) {
+
     },
 
     spawnProcess: function(config, drone) {

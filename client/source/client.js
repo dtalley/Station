@@ -21,8 +21,14 @@ Client.prototype = {
 
         this.network = new window.Worker("network.js");
         this.network.addEventListener("message", this.onNetworkMessage, false);
+        
         this.network.postMessage({
             type: "start",
+            processes: Common.ProcessTypes
+        });
+
+        this.network.postMessage({
+            type: "login",
             processes: Common.ProcessTypes
         });
     },
@@ -39,27 +45,25 @@ Client.prototype = {
     },
 
     handleMessage: function(message) {
-        console.log(message);
-        if( message.id = messages.LoginRequired.id )
+        switch(message.id)
         {
-            var login = messages.ClientLogin.create();
-            login.test1 = -46;
-            login.test2 = -521;
-            login.test3 = -80344;
-            login.test5 = 243;
-            login.test6 = 51233;
-            login.test7 = 101884;
-            login.test9 = -1.3344454;
-            login.test10 = 8847758475847.11212122221;
-            login.test11 = "Test string!";
-            login.test12 = true;
-            login.test13 = false;
-            login.test14 = "true";
-            login.test15 = "false";
-            login.test16 = 1;
-            login.test17 = 0;
+            case messages.LoginRequired.id:
+            {
+                var login = messages.ClientLogin.create();
+                this.network.postMessage({message:login});
+            }
+            break;
 
-            this.network.postMessage({type:"send", message:login});
+            case messages.LoginTicket.id:
+            {
+                this.network.postMessage({
+                    type: "transfer"
+                });
+            }
+            break;
+
+            default:
+                console.log(message);
         }
     }
 };

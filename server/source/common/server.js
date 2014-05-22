@@ -22,6 +22,8 @@ function Server(options) {
         listeners: []
     });
 
+    this.listeners = {};
+
     this.target = conf.get("targets")[conf.get("target")];
 
     this.masterConnection = null;
@@ -32,50 +34,35 @@ Server.prototype = {};
 _.extend(Server.prototype, {
     start: function() {
         this._config.listeners.forEach(function(listener){
-            listener.listener = new Listener({
+            this.listeners[listener.name] = new Listener({
                 port: listener.port,
                 type: this._config.type,
                 protocol: listener.protocol
-            });
-
-            listener.listener.start();
-
-            listener.listener.emitter.on("connect", this.onConnection);
+            }).start();
         }, this);
 
         if( this._config.type === Common.ProcessTypes.Master )
         {
-            this.onMasterVerified();
+            process.send({event: "connect"});
         }
         else
         {
-            this.masterConnection = new Connection({
+            this.masterConnection = new Connection(this.messages);
+            this.masterConnection.configure({
                 host: this.target.masterAddress,
                 port: conf.get("ports:master"),
                 remoteType: Common.ProcessTypes.Master.id,
                 protocol: "default"
-            }, null, this.messages, this._config.type.id);
+            }, null, this._config.type.id)
 
             Log.info("Connecting to Master at " + this.masterConnection.host + ":" + this.masterConnection.port);
 
-            this.masterConnection.emitter.on("connect", this.onConnectedToMaster);
             this.masterConnection.emitter.on("disconnect", this.onMasterDisconnected);
-            this.masterConnection.emitter.on("message", this.onMessage);
+            this.masterConnection.emitter.on("verify", this.onMasterVerified);
+            this.masterConnection.emitter.on("reject", this.onMasterRejected);
 
             this.masterConnection.connect();
         }
-    },
-
-    onConnection: function(listener, connection) {
-        this.emitter.emit("connect", listener, connection);
-
-        connection.emitter.on("message", this.onMessage);
-        connection.emitter.on("destroy", this.onDestroyConnection);
-    },
-
-    onConnectedToMaster: function() {
-        this.masterConnection.emitter.on("verify", this.onMasterVerified);
-        this.masterConnection.emitter.on("reject", this.onMasterRejected);
     },
 
     onMasterDisconnected: function() {
@@ -83,28 +70,15 @@ _.extend(Server.prototype, {
     },
 
     onMasterVerified: function(connection) {
-        if( process.send )
-        {
-            Log.info("Connection to Master verified.");
+        Log.info("Connection to Master verified.");
 
-            process.send({
-                event: "connect"
-            });
-        }
+        if( process.send ) process.send({event: "connect"});
 
         this.emitter.emit("master", this.masterConnection);
     },
 
-    onMasterRejected: function(connection) {
-
-    },
-
-    onMessage: function(message, connection) {
-        this.emitter.emit("message", message, connection);
-    },
-
-    onDestroyConnection: function(connection) {
-
+    onMasterRejected: function(connection, reason) {
+        throw new Error("Connection to Master rejected: " + reason);
     }
 });
 

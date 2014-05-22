@@ -2,12 +2,12 @@
     "ports":{
         "master": 12000,
 
-        "gateway": {
-            "client": 12002
-        },
-
         "authentication": {
             "client": 12003
+        },
+
+        "gateway": {
+            "client": 12004
         }
     },
 

@@ -40,10 +40,10 @@ function Drone() {
     this.server = new Server({
         type: Common.ProcessTypes.Drone
     });
-    this.server.start();
 
-    this.server.emitter.on("message", this.onMessage);
     this.server.emitter.on("master", this.onMasterConnected);
+    
+    this.server.start();
 
     if( ( this.processFlags & Common.ProcessTypes.Master.flag ) > 0 )
     {
@@ -144,9 +144,11 @@ _.extend(Drone.prototype, {
         message.flags = this.processFlags;
 
         connection.sendMessage(message);
+
+        connection.emitter.on("message", this.onMasterMessage);
     },
 
-    onMessage: function(message, connection) {
+    onMasterMessage: function(message, connection) {
         switch(connection.remoteType)
         {
             case Common.ProcessTypes.Master.id:

@@ -1,1 +1,1 @@
-node %~dp0..\source\drone\drone.js
+start cmd /K "node %~dp0..\source\drone\drone.js"

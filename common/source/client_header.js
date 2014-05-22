@@ -1,17 +1,6 @@
 ArrayBuffer.prototype.copy = function(target, targetOffset, sourceOffset, length)
 {
-    var newLength = Math.floor(length / 8);
-
-    var sourceView = new Float64Array(this, sourceOffset, newLength);
-    var targetView = new Float64Array(target, targetOffset, newLength);
-    var overLength = length % 8;
-    
-    for(var i = 0; i < newLength; targetView[i] = sourceView[i], i++, sourceOffset += 8, targetOffset += 8){}
-
-    sourceView = new Uint8Array(this, sourceOffset, overLength);
-    targetView = new Uint8Array(target, targetOffset, overLength);
-
-    for(var i = 0; i < overLength; targetView[i] = sourceView[i], i++){}
+    target.a.set(this.a, targetOffset);
 };
 
 Object.defineProperty(ArrayBuffer.prototype, "length", {
@@ -113,12 +102,22 @@ ArrayBuffer.prototype.writeInt32BE = function(value, offset) {
 
 ArrayBuffer.prototype.writeFloatBE = function(value, offset) {
     this.cf32[0] = value;
-    for( var i = 0; i < 4; this.a[offset+3-i]=this.cu8[i], i++ );
+    this.a[offset+3] = this.cu8[0];
+    this.a[offset+2] = this.cu8[1];
+    this.a[offset+1] = this.cu8[2];
+    this.a[offset] = this.cu8[3];
 };
 
 ArrayBuffer.prototype.writeDoubleBE = function(value, offset) {
     this.cf64[0] = value;
-    for( var i = 0; i < 8; this.a[offset+7-i]=this.cu8[i], i++ );
+    this.a[offset+7] = this.cu8[0];
+    this.a[offset+6] = this.cu8[1];
+    this.a[offset+5] = this.cu8[2];
+    this.a[offset+4] = this.cu8[3];
+    this.a[offset+3] = this.cu8[4];
+    this.a[offset+2] = this.cu8[5];
+    this.a[offset+1] = this.cu8[6];
+    this.a[offset] = this.cu8[7];  
 };
 
 ArrayBuffer.prototype.write = function(value, offset, length, encoding) {

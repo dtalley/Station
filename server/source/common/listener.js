@@ -18,6 +18,8 @@ function Listener(options) {
 
     this.messages = require(conf.get("messageFile"));
 
+    this.connectionPool = [];
+
     this._config = _.defaults({}, options, {
         port: 8888,
         protocol: "default"
@@ -40,10 +42,35 @@ _.extend(Listener.prototype, {
             this.listener = new WebSocketServer({port: this._config.port}, this.onBind);
             this.listener.on("connection", this.onSocketConnection);
         }
+
+        return this;
     },
 
     onBind: function() {
         Log.info("Listener bound on port " + this._config.port);
+    },
+
+    getConnection: function(socket) {
+        var connection;
+        if( this.connectionPool.length > 0 )
+        {
+            connection = this.connectionPool.pop();
+        }
+        else
+        {
+            connection = new Connection(this.messages);
+            connection.emitter.on("destroy", this.reclaimConnection);
+        }
+
+        connection.configure({
+            protocol: this._config.protocol
+        }, socket, this._config.type.id);
+
+        return connection;
+    },
+
+    reclaimConnection: function(connection) {
+        this.connectionPool.push(connection);
     },
 
     onSocketConnection: function(socket) {
@@ -56,9 +83,7 @@ _.extend(Listener.prototype, {
             Log.info("Connection received on port " + this._config.port + " from " + socket.remoteAddress + ":" + socket.remotePort);
         }
 
-        var ref = new Connection({
-            protocol: this._config.protocol
-        }, socket, this.messages, this._config.type.id);
+        var ref = this.getConnection(socket);
         this.emitter.emit("connect", this, ref);
 
         if( !ref.claimed )

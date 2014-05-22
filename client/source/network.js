@@ -16,68 +16,76 @@ NetworkManager.prototype = {
     start: function(processes) {
         this.processes = processes;
 
-        this.socket = new WebSocket("ws://localhost:12003");
-        this.socket.binaryType = "arraybuffer";
-
-        this.socket.onmessage = this.onData;
-
         this.processor = new Processor(messageManager);
         this.processor.onMessage = this.onMessage;
         this.processor.onError = this.onError;
     },
 
+    login: function() {
+        this.socket = new WebSocket("ws://localhost:12003");
+        this.socket.binaryType = "arraybuffer";
+        this.socket.onmessage = this.onData;
+    },
+
+    transfer: function() {
+        this.authenticated = true;
+
+        this.closeSocket();
+        
+        this.socket = new WebSocket("ws://localhost:12004");
+        this.socket.binaryType = "arraybuffer";
+        this.socket.onmessage = this.onData;
+    },
+
     onData: function(event) {
+        event.data.imbue();
         manager.processor.process(event.data);
     },
 
     onMessage: function(message) {
         if( message.id === messageManager.Hello.id )
         {
-            if( !this.authenticated )
+            if( !manager.authenticated )
             {
                 if( message.type === manager.processes.Authentication.id )
                 {
-                    var hello = messageManager.Hello.create();
-                    hello.type = 0;
-
-                    manager.send(hello);
-                }
-                else
-                {
-                    this.socket.terminate();
+                    manager.sendHello();
+                    return;
                 }
             }
-            else if( !this.connected )
+            else if( !manager.connected )
             {
                 if( message.type === manager.processes.Gateway.id )
                 {
-                    var hello = messageManager.Hello.create();
-                    hello.type = 0;
-
-                    manager.send(hello);
-                }
-                else
-                {
-                    this.socket.terminate();
+                    manager.sendHello();
+                    manager.connected = true;
+                    return;
                 }
             }
+
+            manager.closeSocket();
         }
         else
         {
-            self.postMessage({
-                message: message
-            });
+            self.postMessage({message: message});
         }
     },
 
     onError: function(text, error) {
-        self.postMessage({
-            trace: text
-        });
+        trace(text + "\n---" + error);
+    },
 
-        self.postMessage({
-            trace: "" + error
-        });
+    closeSocket: function() {
+        this.socket.onmessage = null;
+        this.socket.close();
+        this.socket = null;
+    },
+
+    sendHello: function() {
+        var hello = messageManager.Hello.create();
+        hello.type = 0;
+
+        this.send(hello);
     },
 
     send: function(message) {
@@ -91,12 +99,20 @@ NetworkManager.prototype = {
 var manager = new NetworkManager();
 
 self.onmessage = function(message) {
-    if( message.data.type === "start" )
+    if( message.data.message )
+    {
+        manager.send(message.data.message);
+    }
+    else if( message.data.type === "start" )
     {
         manager.start(message.data.processes);
     }
-    else if( message.data.type === "send" )
+    else if( message.data.type === "login" )
     {
-        manager.send(message.data.message);
+        manager.login();
+    }
+    else if( message.data.type === "transfer" )
+    {
+        manager.transfer();
     }
 }

@@ -168,10 +168,11 @@ for( var key in storedMessages )
                     "\n" + prefix + "." + key + ".pack = function(obj, buffer, offset, info, internal) {\n" +
                     "\tbuffer = buffer || " + prefix + ".getBuffer();\n" +
                     "\tif(!internal)offset = 6;\n" +
-                    "\tif(!obj)throw new Error(\"No object to serialize!\");\n\n"
+                    "\tif(!obj)throw new Error(\"No object to serialize!\");\n" +
+                    "\tvar strlen = 0;\n\n"
                 );
 
-                write(name, "\n\tbuffer.writeUInt16BE(" + message.id + ", 0, true); //Write message ID\n");
+                write(name, "\tbuffer.writeUInt16BE(" + message.id + ", 0, true); //Write message ID\n");
                 write(name, "\tbuffer.writeUInt32BE(0, 2, true); //Write message size placeholder\n\n");
 
                 var flags = [];
@@ -203,57 +204,58 @@ for( var key in storedMessages )
 
                         spacer = "\t\t";
 
-                        write(name, "\tfor(var i = 0; i < " + arrayCount + "; i++) {\n");
+                        write(name, "\tfor(var i=0;i<" + arrayCount + ";i++){\n");
                     }
 
                     switch(type)
                     {
                         case "int32":
                             write(name, spacer + "buffer.writeInt32BE(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 4;\n");
+                            write(name, spacer + "offset+=4;\n");
                             break;
 
                         case "int16":
                             write(name, spacer + "buffer.writeInt16BE(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 2;\n");
+                            write(name, spacer + "offset+=2;\n");
                             break;
 
                         case "int8":
                             write(name, spacer + "buffer.writeInt8(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 1;\n");
+                            write(name, spacer + "offset+=1;\n");
                             break;
 
                         case "uint32":
                             write(name, spacer + "buffer.writeUInt32BE(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 4;\n");
+                            write(name, spacer + "offset+=4;\n");
                             break;
 
                         case "uint16":
                             write(name, spacer + "buffer.writeUInt16BE(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 2;\n");
+                            write(name, spacer + "offset+=2;\n");
                             break;
 
                         case "uint8":
                             write(name, spacer + "buffer.writeUInt8(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 1;\n");
+                            write(name, spacer + "offset+=1;\n");
                             break;
 
                         case "float":
                             write(name, spacer + "buffer.writeFloatBE(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 4;\n");
+                            write(name, spacer + "offset+=4;\n");
                             break;
 
                         case "double":
                             write(name, spacer + "buffer.writeDoubleBE(obj." + property + arrayAdd + ", offset, true);\n");
-                            write(name, spacer + "offset += 8;\n");
+                            write(name, spacer + "offset+=8;\n");
                             break;
 
                         case "string":
-                            write(name, spacer + "buffer.writeUInt32BE(obj." + property + arrayAdd + ".length, offset, true);\n");
-                            write(name, spacer + "offset += 4;\n");
-                            write(name, spacer + "if(obj." + property + arrayAdd + ".length > 0) {\n");
-                            write(name, spacer + "\tbuffer.write(obj." + property + arrayAdd + ", offset, obj." + property + arrayAdd + ".length, 'utf8');\n");
-                            write(name, spacer + "\toffset += obj." + property + arrayAdd + ".length;\n");
+                            write(name, spacer + "strlen=obj." + property + arrayAdd + ".length;\n");
+                            write(name, spacer + "if(strlen<255){buffer.writeUInt8(strlen, offset, true);offset+=1;}\n");
+                            write(name, spacer + "else{buffer.writeUInt8(255, offset, true);offset+=1;buffer.writeUInt16BE(strlen, offset, true);offset+=2;}\n");
+                            write(name, spacer + "if(strlen>0) {\n");
+                            write(name, spacer + "\tbuffer.write(obj." + property + arrayAdd + ", offset, strlen, 'utf8');\n");
+                            write(name, spacer + "\toffset += strlen;\n");
                             write(name, spacer + "}\n");
                             break;
 
@@ -328,7 +330,8 @@ for( var key in storedMessages )
                     "\tobj = obj || {};\n" +
                     "\tobj.id = " + message.id + "\n" +
                     "\tif(!internal)offset = 6;\n" +
-                    "\tif(!buffer)throw new Error(\"No buffer to unpack message from!\");\n\n"
+                    "\tif(!buffer)throw new Error(\"No buffer to unpack message from!\");\n" +
+                    "\tvar strlen = 0;\n\n"
                 );
 
                 var flags = [];
@@ -421,11 +424,15 @@ for( var key in storedMessages )
                             break;
 
                         case "string":
-                            write(name, spacer + "var length = buffer.readUInt32BE(offset, true);\n");
-                            write(name, spacer + "offset += 4;\n");
-                            write(name, spacer + "if(length > 0) {\n");
-                            write(name, spacer + "\tobj." + property + arrayAdd + " = buffer.toString('utf8', offset, offset + length);\n");
-                            write(name, spacer + "\toffset += length;\n");
+                            write(name, spacer + "strlen = buffer.readUInt8(offset, true);\n");
+                            write(name, spacer + "offset += 1;\n");
+                            write(name, spacer + "if(strlen === 255){\n");
+                            write(name, spacer + "\tstrlen = buffer.readUInt16BE(offset, true);\n");
+                            write(name, spacer + "\toffset += 2;\n");
+                            write(name, spacer + "}\n");
+                            write(name, spacer + "if(strlen > 0) {\n");
+                            write(name, spacer + "\tobj." + property + arrayAdd + " = buffer.toString('utf8', offset, offset + strlen);\n");
+                            write(name, spacer + "\toffset += strlen;\n");
                             write(name, spacer + "}\n");
                             break;
 
