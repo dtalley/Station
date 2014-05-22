@@ -108,10 +108,6 @@ self.onmessage = function(message) {
     {
         manager.send(message.data.message);
     }
-    else if( message.data.start )
-    {
-        manager.start(message.data.processes);
-    }
     else if( message.data.login )
     {
         manager.login();

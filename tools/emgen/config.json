@@ -2,12 +2,14 @@
     "projects": {
         "client": {
             "type": "web",
-            "path": "client/source/web/gen"
+            "path": "client/source/web/gen",
+            "extend": "worker"
         },
 
         "client_index": {
             "type": "index",
-            "path": "client/source/node/gen"
+            "path": "client/source/web/gen",
+            "extend": "index"
         },
 
         "drone": {

@@ -1,13 +1,26 @@
 Orionark.Application = function() {
     this.onNetworkMessage = this.onNetworkMessage.bind(this);
+    this.onClientReady = this.onClientReady.bind(this);
+    this.onMachineLoaded = this.onMachineLoaded.bind(this);
 
-    this.network = new window.Worker("network.js");
-    this.network.addEventListener("message", this.onNetworkMessage, false);
-    
-    this.network.postMessage({start:1});
+    if( process )
+    {
+        process.mainModule.exports.client.start(this.onClientReady);
+    }
+    else
+    {
+        this.onClientReady();
+    }
 };
 
 Orionark.Application.prototype = {
+    onClientReady: function() {
+        this.network = new window.Worker("network.js");
+        this.network.addEventListener("message", this.onNetworkMessage, false);
+
+        this.loadScript("machine.js", this.onMachineLoaded);
+    },
+
     onNetworkMessage: function(message) {
         if( message.data.trace )
         {
@@ -20,7 +33,30 @@ Orionark.Application.prototype = {
     },
 
     handleMessage: function(message) {
-        console.log(message);
+        if( this.machine && this.machine.top )
+        {
+            this.machine.top.handleMessage(message);
+        }
+        else
+        {
+            console.log("Application: Unhandled message...");
+            console.log(message);
+        }
+    },
+
+    loadScript: function(script, callback) {
+        var head = document.getElementsByTagName('head')[0];
+        var element = document.createElement('script');
+        element.type = 'text/javascript';
+        element.src = script;
+        element.onreadystatechange = callback;
+        element.onload = callback;
+        head.appendChild(element);
+    },
+
+    onMachineLoaded: function() {
+        this.machine = new StateMachine();
+        this.machine.push(new LoginState());
     }
 };
 

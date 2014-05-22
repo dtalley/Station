@@ -5,7 +5,13 @@ var generation = {};
 for( var key in config.projects ) 
 {
     var project = config.projects[key];
-    var file = __dirname + "/../../" + project.path + "/messages.js";
+
+    var extend = "";
+    if( project.extend )
+    {
+        extend = "." + project.extend;
+    }
+    var file = __dirname + "/../../" + project.path + "/messages" + extend + ".js";
     
     var file = fs.openSync(file, 'w');
     
@@ -125,7 +131,7 @@ for( var key in storedMessages )
 
         if( project.type == "index" )
         {
-            write(name, "module.exports." + key + " = {\n");
+            write(name, "Orionark.Messages." + key + " = {\n");
             write(name, "\tid: " + message.id + ",\n");
             write(name, "\tcreate: function(){return {id:" + message.id + "};},\n");
             write(name, "};\n\n");

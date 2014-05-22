@@ -1,1 +1,1 @@
-start cmd /K "node %~dp0..\source\client.js"
+start cmd /K "node %~dp0..\source\node\client.js"

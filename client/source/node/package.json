@@ -1,6 +1,6 @@
 {
-  "main": "gen/index.html",
   "node-main": "client.js",
+  "main": "gen/index.html",
 
   "name": "Station Twelve",
   "description": "Station Twelve",
@@ -9,8 +9,6 @@
 
   "window": {
     "title": "Station",
-
-    "frame": false,
 
     "width": 1280,
     "height": 720
