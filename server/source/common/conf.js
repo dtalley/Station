@@ -13,7 +13,10 @@ ConfigurationManager.prototype = {
              .env()
              .file("local", path + "/config.json")
              .file("common", path + "/../common/config.json")
-             .defaults(defaults);
+             .defaults(defaults)
+             .defaults({
+                messageFile: path + "/gen/messages.js"
+             });
 
         return module.exports;
     },

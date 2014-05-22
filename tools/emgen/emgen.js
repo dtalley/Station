@@ -5,7 +5,7 @@ var generation = {};
 for( var key in config.projects ) 
 {
     var project = config.projects[key];
-    var file = __dirname + "/../../" + project.path + "/generated_messages_" + key + ".js";
+    var file = __dirname + "/../../" + project.path + "/messages.js";
     
     var file = fs.openSync(file, 'w');
     

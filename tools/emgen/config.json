@@ -2,32 +2,32 @@
     "projects": {
         "client": {
             "type": "web",
-            "path": "client/source/generated"
+            "path": "client/source/web/gen"
         },
 
         "client_index": {
             "type": "index",
-            "path": "client/source/generated"
+            "path": "client/source/node/gen"
         },
 
         "drone": {
             "type": "node",
-            "path": "server/source/drone"
+            "path": "server/source/drone/gen"
         },
 
         "master": {
             "type": "node",
-            "path": "server/source/master"
+            "path": "server/source/master/gen"
         },
 
         "gateway": {
             "type": "node",
-            "path": "server/source/gateway"
+            "path": "server/source/gateway/gen"
         },
 
         "authentication": {
             "type": "node",
-            "path": "server/source/authentication"
+            "path": "server/source/authentication/gen"
         }
     },
 

@@ -1,5 +1,5 @@
 {
-  "main": "client.html",
+  "main": "gen/index.html",
   "node-main": "client.js",
 
   "name": "Station Twelve",

@@ -10,9 +10,7 @@ var Log = require(__dirname + "/../common/log.js").Log;
 var conf = require(__dirname + "/../common/conf.js");
 
 //Set up our configuration
-conf.init(__dirname, {
-    messageFile: __dirname + "/generated_messages_master.js"
-});
+conf.init(__dirname);
 
 var messages = require(conf.get("messageFile"));
 

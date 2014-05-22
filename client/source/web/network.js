@@ -1,5 +1,8 @@
-importScripts("generated/generated_messages_client.js");
-importScripts("generated/generated_processor.js");
+var processTypes = {
+    Client: 0,
+    Gateway: 3,
+    Authentication: 4
+};
 
 function trace(text) {
     self.postMessage({trace:text});
@@ -10,17 +13,13 @@ function NetworkManager() {
 
     this.authenticated = false;
     this.connected = false;
+
+    this.processor = new Processor(messageManager);
+    this.processor.onMessage = this.onMessage;
+    this.processor.onError = this.onError;
 }
 
 NetworkManager.prototype = {
-    start: function(processes) {
-        this.processes = processes;
-
-        this.processor = new Processor(messageManager);
-        this.processor.onMessage = this.onMessage;
-        this.processor.onError = this.onError;
-    },
-
     login: function() {
         this.socket = new WebSocket("ws://localhost:12003");
         this.socket.binaryType = "arraybuffer";
@@ -28,6 +27,12 @@ NetworkManager.prototype = {
     },
 
     transfer: function() {
+        if( this.authenticated )
+        {
+            throw new Error("Received transfer request when already authenticated and transferred.");
+            return;
+        }
+
         this.authenticated = true;
 
         this.closeSocket();
@@ -47,7 +52,7 @@ NetworkManager.prototype = {
         {
             if( !manager.authenticated )
             {
-                if( message.type === manager.processes.Authentication.id )
+                if( message.type === processTypes.Authentication )
                 {
                     manager.sendHello();
                     return;
@@ -55,7 +60,7 @@ NetworkManager.prototype = {
             }
             else if( !manager.connected )
             {
-                if( message.type === manager.processes.Gateway.id )
+                if( message.type === processTypes.Gateway )
                 {
                     manager.sendHello();
                     manager.connected = true;
@@ -83,7 +88,7 @@ NetworkManager.prototype = {
 
     sendHello: function() {
         var hello = messageManager.Hello.create();
-        hello.type = 0;
+        hello.type = processTypes.Client;
 
         this.send(hello);
     },
@@ -103,15 +108,15 @@ self.onmessage = function(message) {
     {
         manager.send(message.data.message);
     }
-    else if( message.data.type === "start" )
+    else if( message.data.start )
     {
         manager.start(message.data.processes);
     }
-    else if( message.data.type === "login" )
+    else if( message.data.login )
     {
         manager.login();
     }
-    else if( message.data.type === "transfer" )
+    else if( message.data.transfer )
     {
         manager.transfer();
     }

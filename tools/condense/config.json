@@ -6,18 +6,46 @@
             ],
 
             "output": [
-                "server/source/common/generated_processor.js"
+                "server/source/gen/processor.js"
             ]
         },
 
         {
             "input": [
-                "common/source/client_header.js",
-                "common/source/processor.js"
+                "client/source/web/index.html"
             ],
 
             "output": [
-                "client/source/generated/generated_processor.js"
+                "client/source/node/gen/index.html"
+            ]
+        },
+
+        {
+            "input": [
+                "client/source/web/config.js",
+                "client/source/web/index.js"
+            ],
+
+            "output": [
+                "client/source/node/gen/index.js"
+            ],
+
+            "options": {
+                "lint": true,
+                "minify": true
+            }
+        },
+
+        {
+            "input": [
+                "client/source/web/gen/messages.js",
+                "common/source/client_header.js",
+                "common/source/processor.js",
+                "client/source/web/network.js"
+            ],
+
+            "output": [
+                "client/source/node/gen/network.js"
             ]
         }
     ]

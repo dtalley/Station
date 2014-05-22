@@ -27,7 +27,7 @@ var walk = function(dir, done) {
 var exec = require("child_process").exec;
 var zip = new require('node-zip')();
 var usePath = __dirname + path.sep + ".." + path.sep + ".." + path.sep + "client" + path.sep;
-var sourcePath = usePath + "source";
+var sourcePath = usePath + "source/node";
 
 module.exports.build = function() {
     emgen();

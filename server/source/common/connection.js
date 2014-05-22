@@ -12,7 +12,7 @@ var Log = require(__dirname + "/log.js").Log;
 var conf = require(__dirname + "/conf.js");
 
 //Generated common modules
-var Processor = require(__dirname + "/generated_processor.js").Processor;
+var Processor = require(__dirname + "/../gen/processor.js").Processor;
 
 function Connection(messages) {
     _.bindAll(this);

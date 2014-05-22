@@ -1,5 +1,6 @@
 var config = require("./config.json");
 var fs = require("fs");
+var nl = new Buffer("\n\n");
 
 config.files.forEach(function(info){
     var writeTo = [];
@@ -11,7 +12,7 @@ config.files.forEach(function(info){
         console.log("Writing to '" + file + "'.");
     });
 
-    info.input.forEach(function(file){
+    info.input.forEach(function(file, i){
         var handle = fs.openSync(__dirname + "/../../" + file, 'r');    
         var read = new Buffer(1024);
         var bytes = 0;
@@ -21,6 +22,14 @@ config.files.forEach(function(info){
                 fs.writeSync(out, read, 0, bytes);
             });
         }
+
+        if( i < info.input.length -1 )
+        {
+            writeTo.forEach(function(out){
+                fs.writeSync(out, nl, 0, nl.length);
+            });
+        }
+        
         fs.closeSync(handle);
     });
 

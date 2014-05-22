@@ -1,7 +1,7 @@
 server/source/node_modules/
 tools/build/node_modules/
 *.sublime-workspace
-generated_*.*
+gen/
 client/nw/
 client/dist/
 *.lnk
