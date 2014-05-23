@@ -11,8 +11,15 @@ function trace(text) {
 function NetworkManager() {
     this.packInfo = {};
 
-    this.authenticated = false;
-    this.connected = false;
+    this.states = {
+        Start: 0,
+        Connect: 1,
+        Authenticate: 2,
+        Transfer: 3,
+        Ready: 4
+    };
+
+    this.state = this.states.Start;
 
     this.processor = new Processor(messageManager);
     this.processor.onMessage = this.onMessage;
@@ -21,19 +28,29 @@ function NetworkManager() {
 
 NetworkManager.prototype = {
     login: function() {
+        if( this.state !== this.states.Start )
+        {
+            return;
+        }
+
+        trace("NetworkManager connecting to Authentication.");
+
+        this.state++; //Connect
+
         this.socket = new WebSocket("ws://localhost:12003");
         this.socket.binaryType = "arraybuffer";
         this.socket.onmessage = this.onData;
     },
 
     transfer: function() {
-        if( this.authenticated )
+        if( this.state !== this.states.Authenticate )
         {
-            throw new Error("Received transfer request when already authenticated and transferred.");
             return;
         }
 
-        this.authenticated = true;
+        trace("NetworkManager connecting to Gateway.");
+
+        this.state++; //Transfer
 
         this.closeSocket();
         
@@ -50,24 +67,28 @@ NetworkManager.prototype = {
     onMessage: function(message) {
         if( message.id === messageManager.Hello.id )
         {
-            if( !manager.authenticated )
+            if( manager.state === manager.states.Connect )
             {
                 if( message.type === processTypes.Authentication )
                 {
                     manager.sendHello();
+                    manager.state++; //Authenticate
+                    self.postMessage({connect:"authentication"});
                     return;
                 }
             }
-            else if( !manager.connected )
+            else if( manager.state === manager.states.Transfer )
             {
                 if( message.type === processTypes.Gateway )
                 {
                     manager.sendHello();
-                    manager.connected = true;
+                    manager.state++; //Ready
+                    self.postMessage({connect:"gateway"});
                     return;
                 }
             }
 
+            trace("State: " + manager.state);
             manager.closeSocket();
         }
         else

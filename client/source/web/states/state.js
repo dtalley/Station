@@ -36,4 +36,16 @@ StatePrototype.prototype.subDestroy = function(){};
 
 StatePrototype.prototype.show = function(){};
 
-StatePrototype.prototype.handleMessage = function(){};
+StatePrototype.prototype.handleMessage = function(message){
+    if( this.under )
+    {
+        this.under.handleMessage(message);
+    }
+};
+
+StatePrototype.prototype.handleConnect = function(type){
+    if( this.under )
+    {
+        this.under.handleConnect(type);
+    }
+};

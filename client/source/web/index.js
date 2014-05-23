@@ -30,6 +30,10 @@ Orionark.Application.prototype = {
         {
             this.handleMessage(message.data.message);
         }
+        else if( message.data.connect )
+        {
+            this.handleConnect(message.data.connect);
+        }
     },
 
     handleMessage: function(message) {
@@ -39,8 +43,19 @@ Orionark.Application.prototype = {
         }
         else
         {
-            console.log("Application: Unhandled message...");
+            console.log("Application::handleMessage() Unhandled message...");
             console.log(message);
+        }
+    },
+
+    handleConnect: function(type) {
+        if( this.machine && this.machine.top )
+        {
+            this.machine.top.handleConnect(type);
+        }
+        else
+        {
+            console.log("Unhandled connection '" + type + "'");
         }
     },
 

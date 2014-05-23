@@ -6,10 +6,12 @@ LoginState.prototype = new StatePrototype();
 
 LoginState.prototype.subLoad = function() {
     this.fragment = document.createDocumentFragment();
+    this.holder = document.createElement("div");
     var a = document.createElement("a");
+    this.holder.appendChild(a);
     a.setAttribute("href", "#");
     a.appendChild(document.createTextNode("Login"));
-    this.fragment.appendChild(a);
+    this.fragment.appendChild(this.holder);
 
     a.addEventListener("click", this.onLoginClicked);
 
@@ -28,7 +30,7 @@ LoginState.prototype.show = function() {
 };
 
 LoginState.prototype.subDestroy = function() {
-    document.body.removeChild(this.fragment);
+    document.body.removeChild(this.holder);
 };
 
 LoginState.prototype.handleMessage = function(message) {
@@ -48,6 +50,33 @@ LoginState.prototype.handleMessage = function(message) {
         break;
 
         default:
-            console.log(message);
+            if( this.under )
+            {
+                this.under.handleMessage(message);
+            }
+            else
+            {
+                console.log("LoginState::handleMessage() Unhandled message...");
+                console.log(message);
+            }
+    }
+}
+
+LoginState.prototype.handleConnect = function(type) {
+    if( type === "authentication" )
+    {
+        //Do nothing, wait for LoginRequired message
+    }
+    else if( type === "gateway" )
+    {
+        this.machine.push(new GameState());
+    }
+    else if( this.under )
+    {
+        this.under.handleConnect(type);
+    }
+    else
+    {
+        console.log("LoginState::handleConnect() Unhandled connection '" + type + "'");
     }
 }
