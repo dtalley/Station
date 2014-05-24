@@ -7,6 +7,8 @@ LoginState.prototype = new StatePrototype();
 LoginState.prototype.subLoad = function() {
     this.fragment = document.createDocumentFragment();
     this.holder = document.createElement("div");
+    this.holder.id = "login";
+
     var a = document.createElement("a");
     this.holder.appendChild(a);
     a.setAttribute("href", "#");
@@ -20,7 +22,8 @@ LoginState.prototype.subLoad = function() {
 
 LoginState.prototype.onLoginClicked = function(e) {
     window.app.network.postMessage({login:1});
-    return false;
+    
+    e.preventDefault();
 };
 
 LoginState.prototype.show = function() {
@@ -56,8 +59,7 @@ LoginState.prototype.handleMessage = function(message) {
             }
             else
             {
-                console.log("LoginState::handleMessage() Unhandled message...");
-                console.log(message);
+                console.log("Unhandled Message", message);
             }
     }
 }

@@ -22,6 +22,16 @@
 
         {
             "input": [
+                "client/source/web/index.css"
+            ],
+
+            "output": [
+                "client/source/node/gen/index.css"
+            ]
+        },
+
+        {
+            "input": [
                 "client/source/web/config.js",
                 "client/source/web/gen/messages.index.js",
                 "client/source/web/index.js"
@@ -42,7 +52,7 @@
                 "client/source/web/gen/messages.worker.js",
                 "common/source/client_header.js",
                 "common/source/processor.js",
-                "client/source/web/network.js"
+                "client/source/web/network/network.js"
             ],
 
             "output": [
@@ -52,10 +62,10 @@
 
         {
             "input": [
-                "client/source/web/states/state.js",
-                "client/source/web/states/login.js",
-                "client/source/web/states/game.js",
-                "client/source/web/machine.js"
+                "client/source/web/machine/state.js",
+                "client/source/web/machine/login.js",
+                "client/source/web/machine/game.js",
+                "client/source/web/machine/machine.js"
             ],
 
             "output": [

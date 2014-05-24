@@ -43,8 +43,7 @@ Orionark.Application.prototype = {
         }
         else
         {
-            console.log("Application::handleMessage() Unhandled message...");
-            console.log(message);
+            console.log("Unhandled Message", message);
         }
     },
 
@@ -55,18 +54,41 @@ Orionark.Application.prototype = {
         }
         else
         {
-            console.log("Unhandled connection '" + type + "'");
+            console.log("Unhandled Connection", type);
         }
     },
 
-    loadScript: function(script, callback) {
-        var head = document.getElementsByTagName('head')[0];
-        var element = document.createElement('script');
-        element.type = 'text/javascript';
-        element.src = script;
-        element.onreadystatechange = callback;
-        element.onload = callback;
-        head.appendChild(element);
+    loadScript: function(script, completeCallback, progressCallback) {
+        var req = new XMLHttpRequest();
+
+        if( progressCallback )
+        {
+            var scriptProgress = function(event) {
+                if(event.lengthComputable) progressCallback(event.loaded, event.total);
+            };
+            req.addEventListener("progress", scriptProgress, false);
+        }
+
+        var scriptLoaded = function(event) {
+            req.removeEventListener("progress", scriptProgress);
+            req.removeEventListener("load", scriptLoaded);
+            req.removeEventListener("error", error);
+
+            if(event) window.eval(event.target.responseText);
+
+            completeCallback();
+        };
+        req.addEventListener("load", scriptLoaded, false);
+
+        var error = function(event) {
+            console.log("Could not load ", script);
+
+            scriptLoaded();
+        };
+        req.addEventListener("error", error, false);
+
+        req.open("GET", script);
+        req.send();
     },
 
     onMachineLoaded: function() {

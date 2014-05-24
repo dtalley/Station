@@ -7,7 +7,13 @@ GameState.prototype = new StatePrototype();
 GameState.prototype.subLoad = function() {
     this.fragment = document.createDocumentFragment();
     this.holder = document.createElement("div");
-    this.holder.appendChild(document.createTextNode("Game..."));
+    this.holder.id = "game";
+    
+    this.canvas = document.createElement("canvas");
+    this.canvas.setAttribute("width", "100%");
+    this.canvas.setAttribute("height", "100%");
+    this.holder.appendChild(this.canvas);
+
     this.fragment.appendChild(this.holder);
 
     this.machine.onStateLoaded(this);
@@ -33,8 +39,7 @@ GameState.prototype.handleMessage = function(message) {
             }
             else
             {
-                console.log("LoginState::handleMessage() Unhandled message...");
-                console.log(message);
+                console.log("Unhandled Message", message);
             }
     }
 }
