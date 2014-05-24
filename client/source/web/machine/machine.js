@@ -55,4 +55,13 @@ StateMachine.prototype.onStateLoaded = function(state) {
 
 StateMachine.prototype.onStateDestroyed = function(state) {
 
-}
+};
+
+StateMachine.prototype.update = function(dt) {
+    if(dt===0)return;
+    
+    if( this.top )
+    {
+        this.top.update(dt);
+    }
+};

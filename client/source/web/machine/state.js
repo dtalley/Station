@@ -49,3 +49,25 @@ StatePrototype.prototype.handleConnect = function(type){
         this.under.handleConnect(type);
     }
 };
+
+StatePrototype.prototype.internalMessage = function(message, state){
+    this.handleInternalMessage(message);
+
+    if( message.stop )
+    {
+        return;
+    }
+
+    if( this.under )
+    {
+        this.under.internalMessage(message, this);
+    }
+};
+StatePrototype.prototype.handleInternalMessage = function(message){};
+
+StatePrototype.prototype.update = function(dt){
+    if( this.under )
+    {
+        this.under.update(dt);
+    }
+};

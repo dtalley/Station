@@ -2,6 +2,7 @@ Orionark.Application = function() {
     this.onNetworkMessage = this.onNetworkMessage.bind(this);
     this.onClientReady = this.onClientReady.bind(this);
     this.onMachineLoaded = this.onMachineLoaded.bind(this);
+    this.onWindowUpdate = this.onWindowUpdate.bind(this);
 
     if( process )
     {
@@ -81,7 +82,7 @@ Orionark.Application.prototype = {
         req.addEventListener("load", scriptLoaded, false);
 
         var error = function(event) {
-            console.log("Could not load ", script);
+            console.log("Script Load Failure", script, event);
 
             scriptLoaded();
         };
@@ -93,7 +94,16 @@ Orionark.Application.prototype = {
 
     onMachineLoaded: function() {
         this.machine = new StateMachine();
-        this.machine.push(new LoginState());
+        this.machine.push(new GameState());
+
+        window.addEventListener("message", this.onWindowUpdate);
+        window.postMessage(performance.now(), "*");
+    },
+
+    onWindowUpdate: function(then) {
+        var now = performance.now();
+        this.machine.update(now-then.data);
+        window.postMessage(now, "*");
     }
 };
 

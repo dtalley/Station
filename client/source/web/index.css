@@ -17,3 +17,13 @@ html, body {
     width: 100%;
     height: 100%;
 }
+
+#game .fps {
+    position: absolute;
+    background-color: #FFFFFF;
+    padding: 5px;
+    color: #000000;
+    font-weight: bold;
+    right: 10px;
+    bottom: 10px;
+}
