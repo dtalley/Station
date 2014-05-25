@@ -1,7 +1,5 @@
-function WorldSystem(em) {
-    this.em = em;
-
-    this.render = this.addProcessor(new RenderProcessor());
+function WorldProcessor() {
+    
 }
 
-WorldSystem.prototype = new SystemPrototype();
+WorldProcessor.prototype = new ProcessorPrototype();

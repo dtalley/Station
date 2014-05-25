@@ -170,20 +170,25 @@ AssetBundle.prototype.onProgress = function(event) {
 };
 
 function AssetPrototype() {
-
+    this.processed = false;
+    this.processing = false;
 }
 
-AssetPrototype.prototype.process = function(callback) {
-    this.processedCallback = callback;
+AssetPrototype.prototype = new EventEmitter();
 
+AssetPrototype.prototype.process = function() {
+    if( this.processing ) return;
+
+    this.processing = true;
     this.subProcess();
+
+    return this;
 };
 AssetPrototype.prototype.subProcess = function(){};
-AssetPrototype.prototype.processed = function() {
-    if( this.processedCallback )
-    {
-        this.processedCallback();
-    }
+AssetPrototype.prototype.onProcessed = function() {
+    this.processed = true;
+    this.processing = false;
+    this.emit("processed", this);
 };
 
 function AssetManager() {
@@ -196,6 +201,7 @@ AssetManager.prototype.createBundle = function() {
 
 AssetManager.prototype.register = function(path, asset) {
     this.registry[path] = asset;
+    return asset;
 };
 
 AssetManager.prototype.get = function(path) {

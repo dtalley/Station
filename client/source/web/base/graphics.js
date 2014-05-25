@@ -36,37 +36,85 @@ GraphicsManager.prototype.createShader = function(source, type) {
 
 GraphicsManager.prototype.createProgram = function(vertex, fragment) {
     var program = this.gl.createProgram();
-    this.gl.attachShader(program, vertex);
-    this.gl.attachShader(program, fragment);
+    this.gl.attachShader(program, vertex.shader);
+    this.gl.attachShader(program, fragment.shader);
     this.gl.linkProgram(program);
 
     if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
         console.log("Could not link program.");
         return null;
     }
+    
+    var key;
+
+    for( key in vertex.attributes )
+    {
+        program[key] = this.gl.getAttribLocation(program, vertex.attributes[key]);
+        this.gl.enableVertexAttribArray(program[key]);
+    }
+
+    var uniforms = {};
+    for( key in vertex.uniforms )
+    {
+        if( fragment.uniforms[key] !== undefined && fragment.uniforms[key] != vertex.uniforms[key] )
+        {
+            throw new Error("Uniform in fragment shader overwritten by uniform in vertex shader.");
+        }
+        
+        program[key] = this.gl.getUniformLocation(program, vertex.uniforms[key]);
+        uniforms[key] = true;
+    }
+
+    for( key in fragment.uniforms )
+    {
+        if(uniforms[key])
+            continue;
+
+        program[key] = this.gl.getUniformLocation(program, fragment.uniforms[key]);
+    }
 
     return program;
 };
 
+GraphicsManager.prototype.useProgram = function(program) {
+    if( !program )
+    {
+        this.program = null;
+        this.gl.useProgram(null);
+        return;
+    }
+
+    this.program = program.program;
+    this.gl.useProgram(this.program);
+};
+
 GraphicsManager.prototype.createVertexBuffer = function(vertices, stride, count) {
     var buffer = this.gl.createBuffer();
-    buffer.itemSize = stride;
-    buffer.numItems = count;
+    buffer.stride = stride;
+    buffer.count = count;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     return buffer;
 };
 
 GraphicsManager.prototype.drawVertexBuffer = function(buffer, type) {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+    if( this.program )
+    {
+        if( this.program.vpos !== undefined )
+        {
+            this.gl.vertexAttribPointer(this.program.vpos, buffer.stride, this.gl.FLOAT, false, 0, 0);
+        }
+    }
+    
     switch(type)
     {
         case this.Triangles:
-            this.gl.drawArrays(this.gl.TRIANGLES, 0, this.buffer.numItems);
+            this.gl.drawArrays(this.gl.TRIANGLES, 0, buffer.count);
             break;
     }
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 };
 
 GraphicsManager.prototype.resize = function(width, height) {
@@ -82,6 +130,8 @@ GraphicsManager.prototype.startFrame = function() {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
+
+    this.useProgram(null);
 };
 
 GraphicsManager.prototype.endFrame = function() {

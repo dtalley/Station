@@ -34,6 +34,7 @@
             "input": [
                 "client/source/web/config.js",
                 "client/source/web/gen/messages.index.js",
+                "client/source/web/library.js",
                 "client/source/web/index.js"
             ],
 
@@ -62,18 +63,20 @@
                 "client/source/web/base/state/state.js",
                 "client/source/web/base/state/login.js",
                 "client/source/web/base/state/game.js",
-
                 "client/source/web/base/state/machine.js",
 
                 "client/source/web/base/system/processor.js",
                 "client/source/web/base/system/render.js",
 
-                "client/source/web/base/system/system.js",
-
                 "client/source/web/base/asset/asset.js",
                 "client/source/web/base/asset/shader.js",
+                "client/source/web/base/asset/model.js",
+                "client/source/web/base/asset/program.js",
+                "client/source/web/base/asset/material.js",
 
                 "client/source/web/base/entity/entity.js",
+                "client/source/web/base/entity/transform.js",
+                "client/source/web/base/entity/model.js",
 
                 "client/source/web/base/graphics.js"
             ],

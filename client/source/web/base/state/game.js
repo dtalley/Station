@@ -34,7 +34,7 @@ GameState.prototype.onGameProgress = function(loaded, total) {
 GameState.prototype.onGameLoaded = function() {
     this.em = new EntityManager();
 
-    this.world = new WorldSystem(this.em);
+    this.render = new RenderProcessor();
 
     this.gameAssetBundle = window.asset.createBundle();
     this.gameAssetBundle.add("shaders/test/test.vert");
@@ -50,6 +50,17 @@ GameState.prototype.onBundleLoaded = function() {
     window.asset.get("shaders/test/test.vert").process();
     window.asset.get("shaders/test/test.frag").process();
 
+    window.asset.register("models/test/test.oml", new ModelAsset("oml", [
+        0.0,  1.0,  0.0,
+        -1.0, -1.0,  0.0,
+         1.0, -1.0,  0.0
+    ])).process();
+    window.asset.register("programs/test/test.prog", new ProgramAsset("prog", {
+        vertex: window.asset.get("shaders/test/test.vert"),
+        fragment: window.asset.get("shaders/test/test.frag")
+    })).process();
+    window.asset.register("materials/test/test.mtrl", new MaterialAsset("mtrl", window.asset.get("programs/test/test.prog"))).process();
+
     this.machine.onStateLoaded(this);
 };
 
@@ -57,6 +68,13 @@ GameState.prototype.show = function() {
     this.visible = true;
 
     window.ui.appendChild(this.fragment);
+
+    var entity = this.em.createEntity();
+    entity.addComponent(TransformComponent);
+    var model = entity.addComponent(ModelComponent);
+    model.model = window.asset.get("models/test/test.oml");
+    model.material = window.asset.get("materials/test/test.mtrl");
+    this.entity = entity;
 
     this.machine.collapse();
 };
@@ -80,7 +98,7 @@ GameState.prototype.update = function(dt) {
         var fps = 1000.0 * this.fpsCount / this.fpsTotal;
         this.fps.innerHTML = fps.toFixed(1) + "";
 
-        this.world.update(dt);
+        this.render.update(dt);
     }
 };
 
