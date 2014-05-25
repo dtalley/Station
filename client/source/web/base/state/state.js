@@ -37,17 +37,11 @@ StatePrototype.prototype.subDestroy = function(){};
 StatePrototype.prototype.show = function(){};
 
 StatePrototype.prototype.handleMessage = function(message){
-    if( this.under )
-    {
-        this.under.handleMessage(message);
-    }
+    return false;
 };
 
 StatePrototype.prototype.handleConnect = function(type){
-    if( this.under )
-    {
-        this.under.handleConnect(type);
-    }
+    return false;
 };
 
 StatePrototype.prototype.internalMessage = function(message, state){
@@ -65,9 +59,4 @@ StatePrototype.prototype.internalMessage = function(message, state){
 };
 StatePrototype.prototype.handleInternalMessage = function(message){};
 
-StatePrototype.prototype.update = function(dt){
-    if( this.under )
-    {
-        this.under.update(dt);
-    }
-};
+StatePrototype.prototype.update = function(dt){};

@@ -1,8 +1,9 @@
 Orionark.Application = function() {
     this.onNetworkMessage = this.onNetworkMessage.bind(this);
     this.onClientReady = this.onClientReady.bind(this);
-    this.onMachineLoaded = this.onMachineLoaded.bind(this);
+    this.onBaseLoaded = this.onBaseLoaded.bind(this);
     this.onWindowUpdate = this.onWindowUpdate.bind(this);
+    this.onWindowResized = this.onWindowResized.bind(this);
 
     if( process )
     {
@@ -19,7 +20,7 @@ Orionark.Application.prototype = {
         this.network = new window.Worker("network.js");
         this.network.addEventListener("message", this.onNetworkMessage, false);
 
-        this.loadScript("machine.js", this.onMachineLoaded);
+        this.loadScript("base.js", this.onBaseLoaded);
     },
 
     onNetworkMessage: function(message) {
@@ -38,22 +39,14 @@ Orionark.Application.prototype = {
     },
 
     handleMessage: function(message) {
-        if( this.machine && this.machine.top )
-        {
-            this.machine.top.handleMessage(message);
-        }
-        else
+        if( !this.machine || !this.machine.handleMessage(message) )
         {
             console.log("Unhandled Message", message);
         }
     },
 
     handleConnect: function(type) {
-        if( this.machine && this.machine.top )
-        {
-            this.machine.top.handleConnect(type);
-        }
-        else
+        if( !this.machine || !this.machine.handleConnect(type) )
         {
             console.log("Unhandled Connection", type);
         }
@@ -92,18 +85,32 @@ Orionark.Application.prototype = {
         req.send();
     },
 
-    onMachineLoaded: function() {
+    onBaseLoaded: function() {
+        window.gr = new GraphicsManager();
+        window.ui = document.getElementById("ui");
+
         this.machine = new StateMachine();
         this.machine.push(new GameState());
 
         window.addEventListener("message", this.onWindowUpdate);
         window.postMessage(performance.now(), "*");
+
+        window.addEventListener("resize", this.onWindowResized);
+        this.onWindowResized();
     },
 
     onWindowUpdate: function(then) {
         var now = performance.now();
+        window.gr.startFrame();
         this.machine.update(now-then.data);
-        window.postMessage(now, "*");
+        window.gr.endFrame();
+        setTimeout(function(){
+            window.postMessage(now, "*");
+        },0);
+    },
+
+    onWindowResized: function() {
+        window.gr.resize(window.innerWidth, window.innerHeight);
     }
 };
 

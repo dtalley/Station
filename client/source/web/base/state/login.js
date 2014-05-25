@@ -27,13 +27,13 @@ LoginState.prototype.onLoginClicked = function(e) {
 };
 
 LoginState.prototype.show = function() {
-    document.body.appendChild(this.fragment);
+    window.ui.appendChild(this.fragment);
 
     this.machine.collapse();
 };
 
 LoginState.prototype.subDestroy = function() {
-    document.body.removeChild(this.holder);
+    window.ui.removeChild(this.holder);
 };
 
 LoginState.prototype.handleMessage = function(message) {
@@ -53,15 +53,10 @@ LoginState.prototype.handleMessage = function(message) {
         break;
 
         default:
-            if( this.under )
-            {
-                this.under.handleMessage(message);
-            }
-            else
-            {
-                console.log("Unhandled Message", message);
-            }
+            return false;
     }
+
+    return true;
 }
 
 LoginState.prototype.handleConnect = function(type) {
@@ -73,12 +68,10 @@ LoginState.prototype.handleConnect = function(type) {
     {
         this.machine.push(new GameState());
     }
-    else if( this.under )
-    {
-        this.under.handleConnect(type);
-    }
     else
     {
-        console.log("LoginState::handleConnect() Unhandled connection '" + type + "'");
+        return false;
     }
+
+    return true;
 }

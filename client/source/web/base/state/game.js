@@ -11,11 +11,6 @@ GameState.prototype.subLoad = function() {
     this.fragment = document.createDocumentFragment();
     this.holder = document.createElement("div");
     this.holder.id = "game";
-    
-    this.canvas = document.createElement("canvas");
-    this.canvas.setAttribute("width", "100%");
-    this.canvas.setAttribute("height", "100%");
-    this.holder.appendChild(this.canvas);
 
     this.fps = document.createElement("div");
     this.fps.classList.add("fps");
@@ -32,6 +27,8 @@ GameState.prototype.subLoad = function() {
 
 GameState.prototype.onGameLoaded = function() {
     this.machine.onStateLoaded(this);
+
+    this.world = new WorldSystem();
 };
 
 GameState.prototype.onGameProgress = function(loaded, total) {
@@ -41,13 +38,13 @@ GameState.prototype.onGameProgress = function(loaded, total) {
 GameState.prototype.show = function() {
     this.visible = true;
 
-    document.body.appendChild(this.fragment);
+    window.ui.appendChild(this.fragment);
 
     this.machine.collapse();
 };
 
 GameState.prototype.subDestroy = function() {
-    document.body.removeChild(this.holder);
+    window.ui.removeChild(this.holder);
 };
 
 GameState.prototype.update = function(dt) {
@@ -62,28 +59,23 @@ GameState.prototype.update = function(dt) {
         this.fpsTotal += dt;
         this.fpsCount++;
 
-        var fps = 1000.0 / ( this.fpsTotal / this.fpsCount );
+        var fps = 1000.0 * this.fpsCount / this.fpsTotal;
         this.fps.innerHTML = fps.toFixed(1) + "";
-    }
 
-    if( this.under ) this.under.update(dt);
+        this.world.update(dt);
+    }
 };
 
 GameState.prototype.handleMessage = function(message) {
     switch(message.id)
     {
         default:
-            if( this.under )
-            {
-                this.under.handleMessage(message);
-            }
-            else
-            {
-                console.log("Unhandled Message", message);
-            }
+            return false;
     }
+
+    return true;
 };
 
 GameState.prototype.handleConnect = function(type) {
-    
+    return false;
 };

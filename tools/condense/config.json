@@ -39,12 +39,7 @@
 
             "output": [
                 "client/source/node/gen/index.js"
-            ],
-
-            "options": {
-                "lint": true,
-                "minify": true
-            }
+            ]
         },
 
         {
@@ -62,14 +57,33 @@
 
         {
             "input": [
-                "client/source/web/machine/state.js",
-                "client/source/web/machine/login.js",
-                "client/source/web/machine/game.js",
-                "client/source/web/machine/machine.js"
+                "client/source/web/base/glmatrix.js",
+                
+                "client/source/web/base/state/state.js",
+                "client/source/web/base/state/login.js",
+                "client/source/web/base/state/game.js",
+                "client/source/web/base/state/machine.js",
+
+                "client/source/web/base/system/processor.js",
+                "client/source/web/base/system/system.js",
+
+                "client/source/web/base/asset.js",
+                "client/source/web/base/graphics.js"
             ],
 
             "output": [
-                "client/source/node/gen/machine.js"
+                "client/source/node/gen/base.js"
+            ]
+        },
+
+        {
+            "input": [
+                "client/source/web/game/system/render.js",
+                "client/source/web/game/system/world.js"
+            ],
+
+            "output": [
+                "client/source/node/gen/game.js"
             ]
         }
     ]

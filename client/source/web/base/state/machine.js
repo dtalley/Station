@@ -59,9 +59,28 @@ StateMachine.prototype.onStateDestroyed = function(state) {
 
 StateMachine.prototype.update = function(dt) {
     if(dt===0)return;
-    
-    if( this.top )
-    {
-        this.top.update(dt);
-    }
+
+    this.states.forEach(function(state){
+        state.update(dt);
+    });
 };
+
+StateMachine.prototype.handleMessage = function(message) {
+    var state = this.top;
+    while(state && !state.handleMessage(message))
+    {
+        state = state.under;
+    }
+
+    return !!state;
+}
+
+StateMachine.prototype.handleConnect = function(connection) {
+    var state = this.top;
+    while(state && !state.handleConnect(message))
+    {
+        state = state.under;
+    }
+
+    return !!state;
+}
