@@ -57,7 +57,7 @@ LoginState.prototype.handleMessage = function(message) {
     }
 
     return true;
-}
+};
 
 LoginState.prototype.handleConnect = function(type) {
     if( type === "authentication" )
@@ -74,4 +74,4 @@ LoginState.prototype.handleConnect = function(type) {
     }
 
     return true;
-}
+};

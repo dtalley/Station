@@ -1,6 +1,3 @@
-//Third-party modules
-var _ = require("lodash");
-
 function Client() {
     
 }

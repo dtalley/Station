@@ -55,11 +55,11 @@ Orionark.Application.prototype = {
     loadScript: function(script, completeCallback, progressCallback) {
         var req = new XMLHttpRequest();
 
+        var scriptProgress = function(event) {
+            if(event.lengthComputable && progressCallback) progressCallback(event.loaded, event.total);
+        };
         if( progressCallback )
         {
-            var scriptProgress = function(event) {
-                if(event.lengthComputable) progressCallback(event.loaded, event.total);
-            };
             req.addEventListener("progress", scriptProgress, false);
         }
 
@@ -68,7 +68,10 @@ Orionark.Application.prototype = {
             req.removeEventListener("load", scriptLoaded);
             req.removeEventListener("error", error);
 
-            if(event) window.eval(event.target.responseText);
+            if(event)
+            {
+                window.eval(event.target.responseText);
+            }
 
             completeCallback();
         };
@@ -81,12 +84,13 @@ Orionark.Application.prototype = {
         };
         req.addEventListener("error", error, false);
 
-        req.open("GET", script);
+        req.open("GET", script, true);
         req.send();
     },
 
     onBaseLoaded: function() {
         window.gr = new GraphicsManager();
+        window.asset = new AssetManager();
         window.ui = document.getElementById("ui");
 
         this.machine = new StateMachine();

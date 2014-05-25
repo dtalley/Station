@@ -58,16 +58,23 @@
         {
             "input": [
                 "client/source/web/base/glmatrix.js",
-                
+
                 "client/source/web/base/state/state.js",
                 "client/source/web/base/state/login.js",
                 "client/source/web/base/state/game.js",
+
                 "client/source/web/base/state/machine.js",
 
                 "client/source/web/base/system/processor.js",
+                "client/source/web/base/system/render.js",
+
                 "client/source/web/base/system/system.js",
 
-                "client/source/web/base/asset.js",
+                "client/source/web/base/asset/asset.js",
+                "client/source/web/base/asset/shader.js",
+
+                "client/source/web/base/entity/entity.js",
+
                 "client/source/web/base/graphics.js"
             ],
 
@@ -78,13 +85,24 @@
 
         {
             "input": [
-                "client/source/web/game/system/render.js",
                 "client/source/web/game/system/world.js"
             ],
 
             "output": [
                 "client/source/node/gen/game.js"
             ]
+        },
+
+        {
+            "input": [
+                "client/data/*"
+            ],
+
+            "output": [
+                "client/source/node/gen/data/"
+            ],
+
+            "copy": true
         }
     ]
 }

@@ -1,6 +1,8 @@
 function GameState() {
     this.onGameLoaded = this.onGameLoaded.bind(this);
     this.onGameProgress = this.onGameProgress.bind(this);
+    this.onBundleProgress = this.onBundleProgress.bind(this);
+    this.onBundleLoaded = this.onBundleLoaded.bind(this);
 
     this.visible = false;
 }
@@ -25,14 +27,30 @@ GameState.prototype.subLoad = function() {
     window.app.loadScript("game.js", this.onGameLoaded, this.onGameProgress);
 };
 
-GameState.prototype.onGameLoaded = function() {
-    this.machine.onStateLoaded(this);
-
-    this.world = new WorldSystem();
-};
-
 GameState.prototype.onGameProgress = function(loaded, total) {
 
+};
+
+GameState.prototype.onGameLoaded = function() {
+    this.em = new EntityManager();
+
+    this.world = new WorldSystem(this.em);
+
+    this.gameAssetBundle = window.asset.createBundle();
+    this.gameAssetBundle.add("shaders/test/test.vert");
+    this.gameAssetBundle.add("shaders/test/test.frag");
+    this.gameAssetBundle.load(this.onBundleLoaded, this.onBundleProgress);
+};
+
+GameState.prototype.onBundleProgress = function(loaded, total) {
+    
+};
+
+GameState.prototype.onBundleLoaded = function() {
+    window.asset.get("shaders/test/test.vert").process();
+    window.asset.get("shaders/test/test.frag").process();
+
+    this.machine.onStateLoaded(this);
 };
 
 GameState.prototype.show = function() {

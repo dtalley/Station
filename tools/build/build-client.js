@@ -31,7 +31,7 @@ var sourcePath = usePath + "source/node";
 
 module.exports.build = function() {
     emgen();
-}
+};
 
 function emgen() {
     exec("emgen", function(err, stdout, stderr){
@@ -69,6 +69,11 @@ function build() {
         }
 
         files.forEach(function(file){
+            if( file.substr(-9, 9) === "gitignore" )
+            {
+                return;
+            }
+            
             var data = fs.readFileSync(file);
 
             file = file.replace(sourcePath + path.sep, "");
