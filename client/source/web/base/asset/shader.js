@@ -1,30 +1,28 @@
 AssetBundle.prototype.formats.vert = ShaderAsset;
 AssetBundle.prototype.formats.frag = ShaderAsset;
 
-function ShaderAsset(ext, contents) {
-    this.onContentsRead = this.onContentsRead.bind(this);
+function ShaderAsset() {
+    AssetPrototype.apply(this, arguments);
 
-    this.ext = ext;
-    this.contents = contents;
-
-    this.reader = new FileReader();
     this.shader = null;
+    this.attributes = {};
+    this.uniforms = {};
 }
 
 ShaderAsset.prototype = new AssetPrototype();
 
 ShaderAsset.prototype.subProcess = function() {
-    this.reader.onload = this.onContentsRead;
-    this.reader.readAsText(this.contents);
-};
+    var contents = this.readText(this.data).replace(/\r\n/g, "\n");
 
-ShaderAsset.prototype.onContentsRead = function() {
-    var contents = this.reader.result.replace(/\r\n/g, "\n");
-    var fio = contents.indexOf("\n\n");
-    var metadata = JSON.parse(contents.substring(0, fio).replace(/#/g, ""));
-    this.attributes = metadata.attributes;
-    this.uniforms = metadata.uniforms;
-    var source = contents.substring(fio+2, contents.length);
+    var source = contents;
+    if( contents.substring(0,1) === "{" )
+    {
+        var fio = contents.indexOf("}\n\n");
+        var metadata = JSON.parse(contents.substring(0, fio+1).replace(/#/g, ""));
+        this.attributes = metadata.attributes || {};
+        this.uniforms = metadata.uniforms || {};
+        source = contents.substring(fio+3, contents.length);
+    }
     
     if( this.ext === "vert" )
     {

@@ -84,7 +84,7 @@ GraphicsManager.prototype.useProgram = function(program) {
         return;
     }
 
-    this.program = program.program;
+    this.program = program;
     this.gl.useProgram(this.program);
 };
 
@@ -99,13 +99,16 @@ GraphicsManager.prototype.createVertexBuffer = function(vertices, stride, count)
 };
 
 GraphicsManager.prototype.drawVertexBuffer = function(buffer, type) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-    if( this.program )
+    if( !this.program )
     {
-        if( this.program.vpos !== undefined )
-        {
-            this.gl.vertexAttribPointer(this.program.vpos, buffer.stride, this.gl.FLOAT, false, 0, 0);
-        }
+        return;
+    }
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+
+    if( this.program.vpos !== undefined )
+    {
+        this.gl.vertexAttribPointer(this.program.vpos, buffer.stride, this.gl.FLOAT, false, 0, 0);
     }
     
     switch(type)

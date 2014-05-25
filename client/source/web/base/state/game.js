@@ -37,8 +37,7 @@ GameState.prototype.onGameLoaded = function() {
     this.render = new RenderProcessor();
 
     this.gameAssetBundle = window.asset.createBundle();
-    this.gameAssetBundle.add("shaders/test/test.vert");
-    this.gameAssetBundle.add("shaders/test/test.frag");
+    this.gameAssetBundle.add("models/test/test.oml", true);
     this.gameAssetBundle.load(this.onBundleLoaded, this.onBundleProgress);
 };
 
@@ -47,20 +46,7 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 };
 
 GameState.prototype.onBundleLoaded = function() {
-    window.asset.get("shaders/test/test.vert").process();
-    window.asset.get("shaders/test/test.frag").process();
-
-    window.asset.register("models/test/test.oml", new ModelAsset("oml", [
-        0.0,  1.0,  0.0,
-        -1.0, -1.0,  0.0,
-         1.0, -1.0,  0.0
-    ])).process();
-    window.asset.register("programs/test/test.prog", new ProgramAsset("prog", {
-        vertex: window.asset.get("shaders/test/test.vert"),
-        fragment: window.asset.get("shaders/test/test.frag")
-    })).process();
-    window.asset.register("materials/test/test.mtrl", new MaterialAsset("mtrl", window.asset.get("programs/test/test.prog"))).process();
-
+    
     this.machine.onStateLoaded(this);
 };
 

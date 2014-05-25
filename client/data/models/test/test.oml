@@ -1,0 +1,12 @@
+{
+    "vertices": [
+        0.0,  1.0,  0.0,
+        -1.0, -1.0,  0.0,
+         1.0, -1.0,  0.0
+    ],
+
+    "stride": 3,
+    "count": 3,
+
+    "material": "materials/test/test.mtrl"
+}

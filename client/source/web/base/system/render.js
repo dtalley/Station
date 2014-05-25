@@ -6,14 +6,13 @@ RenderProcessor.prototype = new ProcessorPrototype();
 
 RenderProcessor.prototype.update = function(dt) {
     ModelComponent.prototype.stack.forEach(function(model){
-        if( model.entity )
+        if( model.entity && model.material )
         {
-            if( model.material )
-            {
-                model.material.bind();
-            }
+            model.material.passes.forEach(function(pass, i){
+                model.material.bind(i);
 
-            window.gr.drawVertexBuffer(model.model.vertexBuffer, window.gr.Triangles);
+                window.gr.drawVertexBuffer(model.model.vertexBuffer, window.gr.Triangles);
+            });
         }
     });
 };

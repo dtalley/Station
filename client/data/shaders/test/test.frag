@@ -1,6 +1,4 @@
-{
-    "uniforms":{}
-}
+
 
 precision mediump float;
 
