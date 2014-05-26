@@ -77,6 +77,7 @@
                 "client/source/web/base/entity/entity.js",
                 "client/source/web/base/entity/transform.js",
                 "client/source/web/base/entity/model.js",
+                "client/source/web/base/entity/camera.js",
 
                 "client/source/web/base/graphics.js"
             ],

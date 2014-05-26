@@ -88,33 +88,55 @@ GraphicsManager.prototype.useProgram = function(program) {
     this.gl.useProgram(this.program);
 };
 
-GraphicsManager.prototype.createVertexBuffer = function(vertices, stride, count) {
+GraphicsManager.prototype.createVertexBuffer = function(vertices, stride) {
     var buffer = this.gl.createBuffer();
     buffer.stride = stride;
-    buffer.count = count;
+    buffer.count = vertices.length / stride;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     return buffer;
 };
 
-GraphicsManager.prototype.drawVertexBuffer = function(buffer, type) {
+GraphicsManager.prototype.createIndexBuffer = function(indices, stride) {
+    var buffer = this.gl.createBuffer();
+    buffer.stride = stride;
+    buffer.count = indices.length / stride;
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
+    return buffer;
+};
+
+GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer, type) {
     if( !this.program )
     {
         return;
     }
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+
+    if( indexBuffer )
+    {
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    }
 
     if( this.program.vpos !== undefined )
     {
-        this.gl.vertexAttribPointer(this.program.vpos, buffer.stride, this.gl.FLOAT, false, 0, 0);
+        this.gl.vertexAttribPointer(this.program.vpos, vertexBuffer.stride, this.gl.FLOAT, false, 0, 0);
     }
     
     switch(type)
     {
         case this.Triangles:
-            this.gl.drawArrays(this.gl.TRIANGLES, 0, buffer.count);
+            if( indexBuffer )
+            {
+                this.gl.drawElements(this.gl.TRIANGLES, indexBuffer.count, this.gl.UNSIGNED_SHORT, 0);
+            }
+            else
+            {
+                this.gl.drawArrays(this.gl.TRIANGLES, 0, vertexBuffer.count);
+            }
             break;
     }
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
@@ -131,7 +153,10 @@ GraphicsManager.prototype.resize = function(width, height) {
 GraphicsManager.prototype.startFrame = function() {
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.enable(this.gl.CULL_FACE)
     this.gl.depthFunc(this.gl.LEQUAL);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
 
     this.useProgram(null);

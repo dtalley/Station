@@ -4,8 +4,10 @@ function ModelAsset() {
     AssetPrototype.apply(this, arguments);
 
     this.vertexBuffer = null;
+    this.indexBuffer = null;
     this.parsed = null;
     this.vertices = null;
+    this.indices = null;
 }
 
 ModelAsset.prototype = new AssetPrototype();
@@ -28,7 +30,13 @@ ModelAsset.prototype.subProcess = function() {
     }
 
     this.vertices = new Float32Array(this.parsed.vertices);
-    this.vertexBuffer = window.gr.createVertexBuffer(this.vertices, this.parsed.stride, this.parsed.count);
+    this.vertexBuffer = window.gr.createVertexBuffer(this.vertices, 3);
+
+    if( this.parsed.indices )
+    {
+        this.indices = new Uint16Array(this.parsed.indices);
+        this.indexBuffer = window.gr.createIndexBuffer(this.indices, 1);
+    }
 
     this.onProcessed();
 };

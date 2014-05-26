@@ -69,7 +69,6 @@ MaterialAsset.prototype.bind = function(index) {
 
     if( pass.program )
     {
-        console.log(pass.program);
         window.gr.useProgram(pass.program);
     }
 };
