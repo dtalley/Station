@@ -1,4 +1,9 @@
+quat.zero = quat.identity(quat.create());
+
 function GraphicsManager() {
+    this.buffers = [];
+    this.programs = [];
+
     this.canvas = document.getElementsByTagName("canvas")[0];
     this.gl = this.canvas.getContext("webgl");
 
@@ -9,6 +14,14 @@ function GraphicsManager() {
 
     this.glext_ft = this.gl.getExtension("GLI_frame_terminator");
     this.ps = false;
+
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.cullFace(this.gl.BACK);
+    this.gl.depthFunc(this.gl.LEQUAL);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 }
 
 GraphicsManager.prototype.createShader = function(source, type) {
@@ -53,7 +66,6 @@ GraphicsManager.prototype.createProgram = function(vertex, fragment) {
     for( key in vertex.attributes )
     {
         program[key] = this.gl.getAttribLocation(program, vertex.attributes[key]);
-        console.log(program[key]);
         this.gl.enableVertexAttribArray(program[key]);
     }
 
@@ -76,6 +88,9 @@ GraphicsManager.prototype.createProgram = function(vertex, fragment) {
 
         program[key] = this.gl.getUniformLocation(program, fragment.uniforms[key]);
     }
+
+    this.programs.push(program);
+    program.index = this.programs.length-1;
 
     return program;
 };
@@ -105,6 +120,8 @@ GraphicsManager.prototype.createVertexBuffer = function(vertices, stride) {
     buffer.count = vertices.length / stride;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+    this.buffers.push(buffer);
+    buffer.index = this.buffers.length-1;
     return buffer;
 };
 
@@ -114,6 +131,8 @@ GraphicsManager.prototype.createIndexBuffer = function(indices, stride) {
     buffer.count = indices.length / stride;
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
+    this.buffers.push(buffer);
+    buffer.index = this.buffers.length-1;
     return buffer;
 };
 
@@ -169,13 +188,6 @@ GraphicsManager.prototype.resize = function(width, height) {
 };
 
 GraphicsManager.prototype.startFrame = function() {
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.enable(this.gl.BLEND);
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.cullFace(this.gl.BACK);
-    this.gl.depthFunc(this.gl.LEQUAL);
-    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
 
     this.useProgram(null);

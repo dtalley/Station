@@ -2,6 +2,12 @@ function Entity(id) {
     this.id = id;
     this.components = [];
     this.indices = new RingBuffer(10);
+
+    //Common components
+    this.transform = null;
+    this.camera = null;
+    this.model = null;
+    this.input = null;
 }
 
 Entity.prototype.addComponent = function(component) {
@@ -92,6 +98,7 @@ function ComponentPrototype(constructor) {
     this.stack = [];
     this.constructor = constructor;
     this.index = 0;
+    this.id = 0;
 }
 
 ComponentPrototype.prototype.type = "none";
@@ -103,22 +110,21 @@ ComponentPrototype.prototype.create = function() {
     }
 
     this.stack.push(new this.constructor());
+    this.stack[this.stack.length-1].id = this.stack.length - 1;
     return this.stack[this.stack.length-1];
 };
 
 ComponentPrototype.prototype.attach = function(entity) {
     this.entity = entity;
-
-    this.onAttached(entity);
+    this.onAttached();
 
     return this;
 };
 ComponentPrototype.prototype.onAttached = function(){};
 
 ComponentPrototype.prototype.detach = function() {
-    this.entity = null;
-
     this.onDetached();
+    this.entity = null;
 
     return this;
 };
@@ -130,4 +136,7 @@ ComponentPrototype.prototype.release = function() {
     return this;
 };
 
-ComponentPrototype.prototype.configure = function(options){};
+ComponentPrototype.prototype.configure = function(options){
+    _.extend(this, options);
+    return this;
+};

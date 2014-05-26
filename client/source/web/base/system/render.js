@@ -1,6 +1,5 @@
 function RenderProcessor() {
     this.mvm = mat4.create();
-    this.material = null;
 }
 
 RenderProcessor.prototype = new ProcessorPrototype();
@@ -15,7 +14,7 @@ RenderProcessor.prototype.update = function(dt) {
         var model = ModelComponent.prototype.stack[i];
         if( model.entity && model.material )
         {
-            mat4.multiply(this.mvm, camera.ci, model.transform.matrix);
+            mat4.multiply(this.mvm, camera.ci, model.entity.transform.matrix);
 
             var passCount = model.material.passes.length;
             for( var j = 0; j < passCount; j++ )

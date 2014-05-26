@@ -35,6 +35,8 @@ GameState.prototype.onGameLoaded = function() {
     this.em = new EntityManager();
 
     this.render = new RenderProcessor();
+    this.interior = new InteriorProcessor();
+    this.input = new InputProcessor();
 
     this.gameAssetBundle = window.asset.createBundle();
     this.gameAssetBundle.add("models/test/test.oml", true);
@@ -58,6 +60,12 @@ GameState.prototype.show = function() {
 
     window.ui.appendChild(this.fragment);
 
+    this.station = this.em.createEntity();
+    this.station.addComponent(TransformComponent);
+    this.station.addComponent(Interior.ContainerComponent).configure({
+
+    });
+
     this.player = this.em.createEntity();
     this.player.addComponent(TransformComponent).configure({
         position: vec3.fromValues(0, 1, 0)
@@ -66,14 +74,23 @@ GameState.prototype.show = function() {
         model: window.asset.get("models/test/test.oml"),
         material: window.asset.get("materials/test/red.mtrl")
     });
+    this.player.addComponent(InputComponent).configure({
+        driven: true
+    });
+    this.player.addComponent(Interior.DynamicComponent).configure({
+        character: true,
+        size: 1,
+        container: this.station.getComponent(Interior.ContainerComponent)
+    });
 
     this.camera = this.em.createEntity();
-    var transform = this.camera.addComponent(TransformComponent).configure({
+    this.camera.addComponent(CameraComponent).activate();
+    this.camera.addComponent(TransformComponent).configure({
         parent: this.player.getComponent(TransformComponent),
-        position: vec3.fromValues(0, 10, 20)
+        position: vec3.fromValues(0, 80, 80),
+        rotation: quat.rotateX(quat.create(), quat.zero, -45 * Math.PI / 180),
+        watcher: this.camera.getComponent(CameraComponent)
     });
-    quat.rotateX(transform.rotation, transform.rotation, -30 * Math.PI / 180);
-    this.camera.addComponent(CameraComponent).activate().update();
 
     for( var x = -10; x <= 10; x++ )
     {
@@ -113,8 +130,10 @@ GameState.prototype.update = function(dt) {
 
         /*var transform = this.player.getComponent(TransformComponent);
         quat.rotateX(transform.rotation, transform.rotation, 0.0001 * dt);
-        this.camera.getComponent(CameraComponent).update();*/
+        transform.update();*/
 
+        this.input.update(dt);
+        this.interior.update(dt);
         this.render.update(dt);
     }
 };

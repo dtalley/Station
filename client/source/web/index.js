@@ -5,6 +5,8 @@ Orionark.Application = function() {
     this.onWindowUpdate = this.onWindowUpdate.bind(this);
     this.onWindowResized = this.onWindowResized.bind(this);
 
+    this.time = 0;
+
     var process = process || null;
     if( process )
     {
@@ -97,21 +99,20 @@ Orionark.Application.prototype = {
         this.machine = new StateMachine();
         this.machine.push(new GameState());
 
-        window.addEventListener("message", this.onWindowUpdate);
-        window.postMessage(performance.now(), "*");
+        this.time = performance.now();
+        this.onWindowUpdate();
 
         window.addEventListener("resize", this.onWindowResized);
         this.onWindowResized();
     },
 
-    onWindowUpdate: function(then) {
+    onWindowUpdate: function() {
         var now = performance.now();
         window.gr.startFrame();
-        this.machine.update(now-then.data);
+        this.machine.update(now-this.time);
+        this.time = now;
         window.gr.endFrame();
-        setTimeout(function(){
-            window.postMessage(now, "*");
-        },0);
+        setTimeout(this.onWindowUpdate,0);
     },
 
     onWindowResized: function() {

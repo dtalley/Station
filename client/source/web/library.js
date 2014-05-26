@@ -1,3 +1,27 @@
+var _={};
+
+_.extend = function(object) {
+    var index, iterable = object, result = iterable;
+    if (!iterable) return result;
+    
+    var argsIndex = 0, argsLength = arguments.length;
+    while (++argsIndex < argsLength) {
+        iterable = arguments[argsIndex];
+        var isObject = typeof iterable === "function" || typeof iterable === "object";
+        if (iterable) {
+            var ownIndex = -1,
+                ownProps = isObject && Object.keys(iterable),
+                length = ownProps ? ownProps.length : 0;
+
+            while (++ownIndex < length) {
+                index = ownProps[ownIndex];
+                result[index] = iterable[index];
+            }
+        }
+    }
+    return result;
+};
+
 function RingBuffer(length) {
     this.length = length;
 
@@ -7,6 +31,15 @@ function RingBuffer(length) {
 }
 
 RingBuffer.prototype = Object.create(Array.prototype);
+
+RingBuffer.prototype.fillIncremental = function() {
+    for( var i = 0; i < this.length; i++ )
+    {
+        this.push(i);
+    }
+
+    return this;
+};
 
 RingBuffer.prototype.push = function(obj) {
     this.end++;
