@@ -14,3 +14,10 @@ ModelComponent.prototype.onAttached = function(entity) {
 ModelComponent.prototype.onDetached = function() {
     this.transform = null;
 };
+
+ModelComponent.prototype.configure = function(options) {
+    if(options.model) this.model = options.model;
+    if(options.material) this.material = options.material;
+
+    return this;
+};

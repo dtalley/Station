@@ -129,3 +129,5 @@ ComponentPrototype.prototype.release = function() {
 
     return this;
 };
+
+ComponentPrototype.prototype.configure = function(options){};

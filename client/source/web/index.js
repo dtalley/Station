@@ -5,6 +5,7 @@ Orionark.Application = function() {
     this.onWindowUpdate = this.onWindowUpdate.bind(this);
     this.onWindowResized = this.onWindowResized.bind(this);
 
+    var process = process || null;
     if( process )
     {
         process.mainModule.exports.client.start(this.onClientReady);

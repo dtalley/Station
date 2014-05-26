@@ -62,13 +62,15 @@ MaterialAsset.prototype.subProcess = function() {
 MaterialAsset.prototype.bind = function(index) {
     if( index === undefined || this.passes.length <= index )
     {
-        return;
+        return false;
     }
 
     var pass = this.passes[index];
-
-    if( pass.program )
+    if( pass.program && window.gr.program !== pass.program )
     {
         window.gr.useProgram(pass.program);
+        return true;
     }
+
+    return false;
 };

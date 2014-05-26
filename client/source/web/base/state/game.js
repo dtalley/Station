@@ -58,20 +58,38 @@ GameState.prototype.show = function() {
 
     window.ui.appendChild(this.fragment);
 
-    var entity = this.em.createEntity();
-    var transform = entity.addComponent(TransformComponent);
-    var model = entity.addComponent(ModelComponent);
-    model.model = window.asset.get("models/test/test.oml");
-    model.material = window.asset.get("materials/test/green.mtrl");
-    this.entity = entity;
-    vec3.set(transform.position, 0, 0, 0);
+    this.player = this.em.createEntity();
+    this.player.addComponent(TransformComponent).configure({
+        position: vec3.fromValues(0, 1, 0)
+    });
+    this.player.addComponent(ModelComponent).configure({
+        model: window.asset.get("models/test/test.oml"),
+        material: window.asset.get("materials/test/red.mtrl")
+    });
 
     this.camera = this.em.createEntity();
-    transform = this.camera.addComponent(TransformComponent);
-    var camco = this.camera.addComponent(CameraComponent).activate();
-    vec3.set(transform.position, 0, 0, 5);
+    var transform = this.camera.addComponent(TransformComponent).configure({
+        parent: this.player.getComponent(TransformComponent),
+        position: vec3.fromValues(0, 10, 20)
+    });
+    quat.rotateX(transform.rotation, transform.rotation, -30 * Math.PI / 180);
+    this.camera.addComponent(CameraComponent).activate().update();
 
-    this.machine.collapse();
+    for( var x = -10; x <= 10; x++ )
+    {
+        for( var y = -10; y <= 10; y++ )
+        {
+            var box = this.em.createEntity();
+            box.addComponent(TransformComponent).configure({
+                position: vec3.fromValues(x*2, 0, y*2),
+                scale: vec3.fromValues(0.9, 0.01, 0.9)
+            });
+            box.addComponent(ModelComponent).configure({
+                model: window.asset.get("models/test/test.oml"),
+                material: window.asset.get("materials/test/blue.mtrl")
+            });
+        }
+    }
 };
 
 GameState.prototype.subDestroy = function() {
@@ -92,6 +110,10 @@ GameState.prototype.update = function(dt) {
 
         var fps = 1000.0 * this.fpsCount / this.fpsTotal;
         this.fps.innerHTML = fps.toFixed(1) + "";
+
+        /*var transform = this.player.getComponent(TransformComponent);
+        quat.rotateX(transform.rotation, transform.rotation, 0.0001 * dt);
+        this.camera.getComponent(CameraComponent).update();*/
 
         this.render.update(dt);
     }

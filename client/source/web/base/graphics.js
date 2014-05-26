@@ -6,6 +6,9 @@ function GraphicsManager() {
     {
         throw new Error("Unable to get WebGL context.");
     }
+
+    this.glext_ft = this.gl.getExtension("GLI_frame_terminator");
+    this.ps = false;
 }
 
 GraphicsManager.prototype.createShader = function(source, type) {
@@ -50,6 +53,7 @@ GraphicsManager.prototype.createProgram = function(vertex, fragment) {
     for( key in vertex.attributes )
     {
         program[key] = this.gl.getAttribLocation(program, vertex.attributes[key]);
+        console.log(program[key]);
         this.gl.enableVertexAttribArray(program[key]);
     }
 
@@ -77,6 +81,13 @@ GraphicsManager.prototype.createProgram = function(vertex, fragment) {
 };
 
 GraphicsManager.prototype.useProgram = function(program) {
+    if( program === this.program )
+    {
+        return;
+    }
+
+    this.ps = true;
+
     if( !program )
     {
         this.program = null;
@@ -94,7 +105,6 @@ GraphicsManager.prototype.createVertexBuffer = function(vertices, stride) {
     buffer.count = vertices.length / stride;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     return buffer;
 };
 
@@ -104,7 +114,6 @@ GraphicsManager.prototype.createIndexBuffer = function(indices, stride) {
     buffer.count = indices.length / stride;
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
     return buffer;
 };
 
@@ -114,16 +123,26 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer,
         return;
     }
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-
-    if( indexBuffer )
+    if( this.vb !== vertexBuffer )
     {
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+        this.vb = vertexBuffer;
+
+        if( this.ps )
+        {
+            if( this.program.vpos !== undefined )
+            {
+                this.gl.vertexAttribPointer(this.program.vpos, vertexBuffer.stride, this.gl.FLOAT, false, 0, 0);
+            }
+
+            this.ps = false;
+        }
     }
 
-    if( this.program.vpos !== undefined )
+    if( indexBuffer && this.ib !== indexBuffer )
     {
-        this.gl.vertexAttribPointer(this.program.vpos, vertexBuffer.stride, this.gl.FLOAT, false, 0, 0);
+        this.ib = indexBuffer;
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     }
     
     switch(type)
@@ -139,7 +158,6 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer,
             }
             break;
     }
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 };
 
 GraphicsManager.prototype.resize = function(width, height) {
@@ -164,7 +182,9 @@ GraphicsManager.prototype.startFrame = function() {
 };
 
 GraphicsManager.prototype.endFrame = function() {
-
+    if (this.glext_ft) {
+        this.glext_ft.frameTerminator();
+    }
 };
 
 //Shaders
