@@ -38,6 +38,9 @@ GameState.prototype.onGameLoaded = function() {
 
     this.gameAssetBundle = window.asset.createBundle();
     this.gameAssetBundle.add("models/test/test.oml", true);
+    this.gameAssetBundle.add("materials/test/red.mtrl", true);
+    this.gameAssetBundle.add("materials/test/green.mtrl", true);
+    this.gameAssetBundle.add("materials/test/blue.mtrl", true);
     this.gameAssetBundle.load(this.onBundleLoaded, this.onBundleProgress);
 };
 
@@ -59,15 +62,14 @@ GameState.prototype.show = function() {
     var transform = entity.addComponent(TransformComponent);
     var model = entity.addComponent(ModelComponent);
     model.model = window.asset.get("models/test/test.oml");
-    model.material = window.asset.get("materials/test/test.mtrl");
+    model.material = window.asset.get("materials/test/green.mtrl");
     this.entity = entity;
     vec3.set(transform.position, 0, 0, 0);
-    vec3.set(transform.scale, 0.25, 0.25, 0.25);
 
     this.camera = this.em.createEntity();
     transform = this.camera.addComponent(TransformComponent);
     var camco = this.camera.addComponent(CameraComponent).activate();
-    vec3.set(transform.position, 0, 0, 10);
+    vec3.set(transform.position, 0, 0, 5);
 
     this.machine.collapse();
 };
@@ -90,9 +92,6 @@ GameState.prototype.update = function(dt) {
 
         var fps = 1000.0 * this.fpsCount / this.fpsTotal;
         this.fps.innerHTML = fps.toFixed(1) + "";
-
-        var transform = this.entity.getComponent(TransformComponent);
-        quat.rotateX(transform.rotation, transform.rotation, 0.001);
 
         this.render.update(dt);
     }
