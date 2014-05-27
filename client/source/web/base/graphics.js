@@ -18,8 +18,8 @@ function GraphicsManager() {
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.enable(this.gl.BLEND);
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.cullFace(this.gl.BACK);
+    //this.gl.enable(this.gl.CULL_FACE);
+    //this.gl.cullFace(this.gl.BACK);
     this.gl.depthFunc(this.gl.LEQUAL);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 }
@@ -151,7 +151,12 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer,
         {
             if( this.program.vpos !== undefined )
             {
-                this.gl.vertexAttribPointer(this.program.vpos, vertexBuffer.stride, this.gl.FLOAT, false, 0, 0);
+                this.gl.vertexAttribPointer(this.program.vpos, 3, this.gl.FLOAT, false, vertexBuffer.stride * 4, 0);
+            }
+
+            if( this.program.vcol !== undefined )
+            {
+                this.gl.vertexAttribPointer(this.program.vcol, 3, this.gl.FLOAT, false, vertexBuffer.stride * 4, 3 * 4);
             }
 
             this.ps = false;

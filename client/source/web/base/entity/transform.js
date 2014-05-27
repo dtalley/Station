@@ -5,8 +5,8 @@ function TransformComponent() {
 
     this.parent = null;
 
-    this.indices = new RingBuffer(20).fillIncremental();
-    this.children = new Array(20);
+    this.indices = new RingBuffer(1000).fillIncremental();
+    this.children = new Array(1000);
     this.watcher = null;
     this.index = 0;
 
@@ -39,6 +39,10 @@ TransformComponent.prototype.removeChild = function(child) {
 
     this.indices.push(child.index);
     this.children[child.index] = null;
+};
+
+TransformComponent.prototype.setParent = function(parent) {
+    parent.addChild(this);
 };
 
 TransformComponent.prototype.onAttached = function() {

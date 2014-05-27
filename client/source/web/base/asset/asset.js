@@ -224,6 +224,8 @@ AssetPrototype.prototype.onLoaded = function(processCallback) {
 };
 
 AssetPrototype.prototype.process = function(processCallback) {
+    if(!this.bundle) return;
+
     this.processCallback = processCallback;
 
     if( this.processing ) return;

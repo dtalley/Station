@@ -35,11 +35,10 @@ GameState.prototype.onGameLoaded = function() {
     this.em = new EntityManager();
 
     this.render = new RenderProcessor();
-    this.interior = new InteriorProcessor();
+    this.interior = new InteriorProcessor(this.em);
     this.input = new InputProcessor();
 
     this.gameAssetBundle = window.asset.createBundle();
-    this.gameAssetBundle.add("models/test/test.oml", true);
     this.gameAssetBundle.add("materials/test/red.mtrl", true);
     this.gameAssetBundle.add("materials/test/green.mtrl", true);
     this.gameAssetBundle.add("materials/test/blue.mtrl", true);
@@ -51,7 +50,6 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 };
 
 GameState.prototype.onBundleLoaded = function() {
-    
     this.machine.onStateLoaded(this);
 };
 
@@ -68,17 +66,15 @@ GameState.prototype.show = function() {
 
     this.player = this.em.createEntity();
     this.player.addComponent(TransformComponent).configure({
-        position: vec3.fromValues(0, 1, 0)
-    });
-    this.player.addComponent(ModelComponent).configure({
-        model: window.asset.get("models/test/test.oml"),
-        material: window.asset.get("materials/test/red.mtrl")
+        position: vec3.fromValues(0, 1, 0),
+        parent: this.station.getComponent(TransformComponent)
     });
     this.player.addComponent(InputComponent).configure({
         driven: true
     });
     this.player.addComponent(Interior.DynamicComponent).configure({
         character: true,
+        player: true,
         size: 1,
         container: this.station.getComponent(Interior.ContainerComponent)
     });
@@ -87,26 +83,10 @@ GameState.prototype.show = function() {
     this.camera.addComponent(CameraComponent).activate();
     this.camera.addComponent(TransformComponent).configure({
         parent: this.player.getComponent(TransformComponent),
-        position: vec3.fromValues(0, 80, 80),
+        position: vec3.fromValues(0, 180, 180),
         rotation: quat.rotateX(quat.create(), quat.zero, -45 * Math.PI / 180),
         watcher: this.camera.getComponent(CameraComponent)
     });
-
-    for( var x = -10; x <= 10; x++ )
-    {
-        for( var y = -10; y <= 10; y++ )
-        {
-            var box = this.em.createEntity();
-            box.addComponent(TransformComponent).configure({
-                position: vec3.fromValues(x*2, 0, y*2),
-                scale: vec3.fromValues(0.9, 0.01, 0.9)
-            });
-            box.addComponent(ModelComponent).configure({
-                model: window.asset.get("models/test/test.oml"),
-                material: window.asset.get("materials/test/blue.mtrl")
-            });
-        }
-    }
 };
 
 GameState.prototype.subDestroy = function() {

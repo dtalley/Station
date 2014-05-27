@@ -30,13 +30,23 @@ ModelAsset.prototype.subProcess = function() {
     }
 
     this.vertices = new Float32Array(this.parsed.vertices);
-    this.vertexBuffer = window.gr.createVertexBuffer(this.vertices, 3);
 
     if( this.parsed.indices )
     {
         this.indices = new Uint16Array(this.parsed.indices);
-        this.indexBuffer = window.gr.createIndexBuffer(this.indices, 1);
     }
 
     this.onProcessed();
+};
+
+ModelAsset.prototype.createBuffers = function() {
+    if( this.vertices )
+    {
+        this.vertexBuffer = window.gr.createVertexBuffer(this.vertices, 6);
+    }
+
+    if( this.indices )
+    {
+        this.indexBuffer = window.gr.createIndexBuffer(this.indices, 1);
+    }
 };

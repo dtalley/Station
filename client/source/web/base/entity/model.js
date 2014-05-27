@@ -1,7 +1,8 @@
 function ModelComponent() {
     this.model = null;
     this.material = null;
-    this.transform = null;
+
+    this.visible = true;
 }
 
 ModelComponent.prototype = new ComponentPrototype(ModelComponent);

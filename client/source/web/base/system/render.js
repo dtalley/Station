@@ -12,7 +12,7 @@ RenderProcessor.prototype.update = function(dt) {
     for( var i = 0; i < modelCount; i++ )
     {
         var model = ModelComponent.prototype.stack[i];
-        if( model.entity && model.material )
+        if( model.entity && model.material && model.model )
         {
             mat4.multiply(this.mvm, camera.ci, model.entity.transform.matrix);
 
