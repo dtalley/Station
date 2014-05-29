@@ -27,9 +27,14 @@ StatePrototype.prototype.uncover = function(machine, state) {
 StatePrototype.prototype.subUncover = function(){};
 
 StatePrototype.prototype.destroy = function(machine, state) {
+    if(this.over)this.over.under = this.under;
+    if(this.under)this.under.over = this.over;
+
     this.over = null;
     this.under = null;
+
     this.subDestroy();
+    
     return this;
 };
 StatePrototype.prototype.subDestroy = function(){};

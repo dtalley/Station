@@ -5,12 +5,14 @@ function TransformComponent() {
 
     this.parent = null;
 
-    this.indices = new RingBuffer(1000).fillIncremental();
-    this.children = new Array(1000);
+    this.indices = new RingBuffer();
+    this.children = [];
     this.watcher = null;
     this.index = 0;
 
     this.matrix = mat4.create();
+    this.matrix.buffer.imbue();
+    this.storedMatrix = -1;
 }
 
 TransformComponent.prototype = new ComponentPrototype(TransformComponent);
@@ -25,13 +27,15 @@ TransformComponent.prototype.addChild = function(child) {
         var index = this.indices.shift();
         this.children[index] = child;
         child.index = index;
-        child.parent = this;
-        child.update();
     }
     else
     {
-        throw new Error("Attempt to add too many children to TransformComponent.");
+        this.children.push(child);
+        child.index = this.children.length-1;
     }
+
+    child.parent = this;
+    child.update();
 };
 
 TransformComponent.prototype.removeChild = function(child) {
@@ -76,15 +80,12 @@ TransformComponent.prototype.update = function() {
         mat4.multiply(this.matrix, this.parent.matrix, this.matrix);
     }
 
-    var count = this.indices.length;
-    if( this.indices.span < count )
+    var count = this.children.length;
+    for( var i = 0; i < count; i++ )
     {
-        for( var i = 0; i < count; i++ )
+        if(this.children[i])
         {
-            if(this.children[i])
-            {
-                this.children[i].update();
-            }
+            this.children[i].update();
         }
     }
 

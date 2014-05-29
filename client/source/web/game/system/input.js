@@ -12,15 +12,15 @@ function InputProcessor() {
     window.onkeydown = this.onKeyDown;
     window.onkeyup = this.onKeyUp;
 
-    window.onmousedown = this.onMouseDown;
+    /*window.onmousedown = this.onMouseDown;
     window.onmouseup = this.onMouseUp;
 
-    window.onmousemove = this.onMouseMove;
+    window.onmousemove = this.onMouseMove;*/
 }
 
 InputProcessor.prototype = new ProcessorPrototype();
 
-InputProcessor.prototype.update = function(dt) {
+InputProcessor.prototype.start = function(dt) {
 
 };
 
@@ -28,7 +28,6 @@ InputProcessor.prototype.set = function(code) {
     if(this.keys[code])return;
 
     this.keys[code] = 1;
-    console.log(code);
 
     var count = this.stack.length;
     for( var i = 0; i < count; i++ )

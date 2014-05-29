@@ -1,1 +1,1 @@
-start %~dp0..\dist\win32\nw.exe %~dp0..\dist\win32\client.nw
+start chrome --allow-file-access-from-files --chrome-frame --window-size=1280,720 --new-window  --window-position=580,240 --app="%~dp0..\source\node\gen\index.html"

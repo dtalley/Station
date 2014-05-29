@@ -1,6 +1,25 @@
 quat.zero = quat.identity(quat.create());
 
-function GraphicsManager() {
+function GraphicsManager(finishCallback) {
+    this.onBatchMessage = this.onBatchMessage.bind(this);
+
+    this.commandSize = 1024 * 16;
+    this.commandThreshold = this.commandSize - 256;
+
+    this.commandPool = new StackPool();
+    this.commandQueue = new RingBuffer();
+
+    this.writing = null;
+    this.reading = null;
+    this.writeOffset = 0;
+    this.readOffset = 0;
+
+    this.uniformIndex = [];
+    this.uniformReference = {};
+
+    this.finishCallback = finishCallback;
+    this.onBatchMessage = this.onBatchMessage.bind(this);
+
     this.buffers = [];
     this.programs = [];
 
@@ -12,7 +31,7 @@ function GraphicsManager() {
         throw new Error("Unable to get WebGL context.");
     }
 
-    this.glext_ft = this.gl.getExtension("GLI_frame_terminator");
+    //this.glext_ft = this.gl.getExtension("GLI_frame_terminator");
     this.ps = false;
 
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -22,6 +41,29 @@ function GraphicsManager() {
     //this.gl.cullFace(this.gl.BACK);
     this.gl.depthFunc(this.gl.LEQUAL);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+    this.batch = new window.Worker("batch.js");
+    this.batch.addEventListener("message", this.onBatchMessage, false);
+
+    this.currentStore = 2;
+    this.currentResult = 0;
+
+    this.callsReceived = 0;
+    this.callsSent = 0;
+
+    this.uniforms = new Array(this.GlobalUniformCount);
+
+    this.stored = [];
+
+    this.enabled = true;
+
+    this.mvm = mat4.create();
+    this.mvm.buffer.imbue();
+
+    this.batchStarted = false;
+    this.batchEnded = false;
+    this.frameEnded = false;
+    this.processingComplete = false;
 }
 
 GraphicsManager.prototype.createShader = function(source, type) {
@@ -61,36 +103,37 @@ GraphicsManager.prototype.createProgram = function(vertex, fragment) {
         return null;
     }
     
-    var key;
+    program.attributes = [];
+    vertex.attributes.forEach(function(attribute,i){
+        var key = attribute[0];
+        var attr = {
+            key: key,
+            id: this.gl.getAttribLocation(program, attribute[1])
+        };
+        program[key] = attr.id;
+        program.attributes.push(attr);
+        this.gl.enableVertexAttribArray(attr.id);
+    }, this);
 
-    for( key in vertex.attributes )
-    {
-        program[key] = this.gl.getAttribLocation(program, vertex.attributes[key]);
-        this.gl.enableVertexAttribArray(program[key]);
-    }
+    program.uniforms = [];
+    vertex.uniforms.forEach(function(uniform,i){
+        var key = uniform[0];
 
-    var uniforms = {};
-    for( key in vertex.uniforms )
-    {
-        if( fragment.uniforms[key] !== undefined && fragment.uniforms[key] != vertex.uniforms[key] )
-        {
-            throw new Error("Uniform in fragment shader overwritten by uniform in vertex shader.");
-        }
-        
-        program[key] = this.gl.getUniformLocation(program, vertex.uniforms[key]);
-        uniforms[key] = true;
-    }
+        program[key] = this.gl.getUniformLocation(program, uniform[1]);
+        program.uniforms.push(program[key]);
+    }, this);
 
-    for( key in fragment.uniforms )
-    {
-        if(uniforms[key])
-            continue;
+    vertex.uniforms.forEach(function(uniform,i){
+        var key = uniform[0];
+        if(program[key])
+            return;
 
-        program[key] = this.gl.getUniformLocation(program, fragment.uniforms[key]);
-    }
+        program[key] = this.gl.getUniformLocation(program, uniform[1]);
+        program.uniforms.push(program[key]);
+    }, this);
 
     this.programs.push(program);
-    program.index = this.programs.length-1;
+    program.id = this.programs.length-1;
 
     return program;
 };
@@ -114,29 +157,71 @@ GraphicsManager.prototype.useProgram = function(program) {
     this.gl.useProgram(this.program);
 };
 
-GraphicsManager.prototype.createVertexBuffer = function(vertices, stride) {
+GraphicsManager.prototype.createVertexBuffer = function(vertices, attributes) {
     var buffer = this.gl.createBuffer();
-    buffer.stride = stride;
-    buffer.count = vertices.length / stride;
+    buffer.attributes = [];
+    var offset = 0;
+    var count = attributes.length;
+    for( var i = 0; i < count; i++ )
+    {
+        var attribute = attributes[i];
+        var type = this.gl.FLOAT;
+        var size = 4;
+        switch(attribute.type)
+        {
+            case this.Float:
+                type = this.gl.FLOAT;
+                size = 4;
+                break;
+
+            case this.Double:
+                type = this.gl.DOUBLE;
+                size = 8;
+                break;
+
+            case this.Short:
+                type = this.gl.UNSIGNED_SHORT;
+                size = 4;
+                break;
+        }
+        buffer[attribute.name] = {
+            name: attribute.name,
+            size: size,
+            offset: offset,
+            count: attribute.count,
+            type: type,
+            normalized: attribute.normalized || false
+        };
+        offset += size * attribute.count;
+    }
+    buffer.stride = offset;
+    buffer.count = vertices.length / buffer.stride;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
     this.buffers.push(buffer);
-    buffer.index = this.buffers.length-1;
+    buffer.id = this.buffers.length-1;
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     return buffer;
 };
 
-GraphicsManager.prototype.createIndexBuffer = function(indices, stride) {
+GraphicsManager.prototype.createIndexBuffer = function(indices, type) {
     var buffer = this.gl.createBuffer();
-    buffer.stride = stride;
-    buffer.count = indices.length / stride;
+    buffer.count = indices.length;
+    switch(type)
+    {
+        case this.Triangles:
+            buffer.type = this.gl.TRIANGLES;
+            break;
+    }
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
     this.buffers.push(buffer);
-    buffer.index = this.buffers.length-1;
+    buffer.id = this.buffers.length-1;
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
     return buffer;
 };
 
-GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer, type) {
+GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer) {
     if( !this.program )
     {
         return;
@@ -149,14 +234,14 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer,
 
         if( this.ps )
         {
-            if( this.program.vpos !== undefined )
+            var count = this.program.attributes.length;
+            for( var i = 0; i < count; i++ )
             {
-                this.gl.vertexAttribPointer(this.program.vpos, 3, this.gl.FLOAT, false, vertexBuffer.stride * 4, 0);
-            }
-
-            if( this.program.vcol !== undefined )
-            {
-                this.gl.vertexAttribPointer(this.program.vcol, 3, this.gl.FLOAT, false, vertexBuffer.stride * 4, 3 * 4);
+                var match = this.program.attributes[i];
+                var attribute = vertexBuffer[match.key];
+                if(!attribute) continue;
+                
+                this.gl.vertexAttribPointer(match.id, attribute.count, attribute.type, attribute.normalized, vertexBuffer.stride, attribute.offset);
             }
 
             this.ps = false;
@@ -169,19 +254,16 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer,
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     }
     
-    switch(type)
+    if( indexBuffer )
     {
-        case this.Triangles:
-            if( indexBuffer )
-            {
-                this.gl.drawElements(this.gl.TRIANGLES, indexBuffer.count, this.gl.UNSIGNED_SHORT, 0);
-            }
-            else
-            {
-                this.gl.drawArrays(this.gl.TRIANGLES, 0, vertexBuffer.count);
-            }
-            break;
+        this.gl.drawElements(indexBuffer.type, indexBuffer.count, this.gl.UNSIGNED_SHORT, 0);
     }
+    else
+    {
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, vertexBuffer.count);
+    }
+
+    this.marked = true;
 };
 
 GraphicsManager.prototype.resize = function(width, height) {
@@ -192,17 +274,224 @@ GraphicsManager.prototype.resize = function(width, height) {
     this.height = height;
 };
 
-GraphicsManager.prototype.startFrame = function() {
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
+GraphicsManager.prototype.onBatchMessage = function(event) {
+    if( event.data.byteLength )
+    {
+        this.commandQueue.push(event.data.imbue());
 
-    this.useProgram(null);
+        if(this.commandQueue.span === 1) 
+        {
+            this.reading = event.data;
+            this.process();
+        }
+    }
+    else if( event.data === "end" )
+    {
+        if( this.commandQueue.span === 0 )
+        {
+            this.processingComplete = true;
+        }
+        this.batchEnded = true;
+        this.finish(true);
+    }
+};
+
+GraphicsManager.prototype.process = function() {
+    if( !this.batchStarted )
+    {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
+        this.useProgram(null);
+        this.batchStarted = true;
+    }
+
+    while(true)
+    {
+        var test = this.reading.readUInt8(this.readOffset);
+
+        if( test !== 0xFF )
+        {
+            var vertices = this.reading.readUInt32BE(this.readOffset);
+            var indices = this.reading.readUInt32BE(this.readOffset+=4);
+            var program = this.reading.readUInt32BE(this.readOffset+=4);
+            var resultCount = this.reading.readUInt8(this.readOffset+=4);
+            this.readOffset += 1;
+
+            for( var j = 0; j < resultCount; j++ )
+            {
+                if( j === 0 )
+                {
+                    for( var i = 0; i < 8; i++ ) this.mvm.buffer.writeDoubleBE(this.reading.readDoubleBE(this.readOffset + ( i * 8 )), i * 8);
+                }
+                this.readOffset += 64;
+            }
+
+            var vb = null;
+            if(vertices < this.buffers.length)
+                vb = this.buffers[vertices];
+
+            var ib = null;
+            if(indices < this.buffers.length)
+                ib = this.buffers[indices];
+
+            var pr = null;
+            if(program < this.programs.length)
+                pr = this.programs[program];
+
+            if(!vb || !pr) throw new Error("Invalid draw command received.");
+
+            this.useProgram(pr);
+
+            this.gl.uniformMatrix4fv(pr.uniforms[0], false, CameraComponent.active.perspective);
+            this.gl.uniformMatrix4fv(pr.uniforms[1], false, this.mvm);
+
+            this.drawVertexBuffer(vb, ib);
+
+            this.callsReceived++;
+
+            continue;
+        }
+        
+        this.commandPool.push(this.commandQueue.shift());
+        this.reading = null;
+        this.readOffset = 0;
+
+        if( this.commandQueue.span > 0 )
+        {
+            this.reading = this.commandQueue.first;
+        }
+        else
+        {
+            if( this.batchEnded )
+            {
+                this.processingComplete = true;
+                this.finish(true);
+            }
+            break;
+        }
+    }
+};
+
+GraphicsManager.prototype.startCommand = function(type) {
+    if(!this.writing)
+    {
+        if(this.commandPool.top>0) this.writing = this.commandPool.pop().imbue();
+        else this.writing = new ArrayBuffer(1024 * 16).imbue();
+    }
+    else if( this.writeOffset > this.commandThreshold )
+    {
+        this.flushCommand();
+        return this.startCommand(type);
+    }
+
+    this.writing.writeUInt8(type, this.writeOffset);
+    this.writeOffset += 1;
+};
+
+GraphicsManager.prototype.flushCommand = function() {
+    this.writing.writeUInt8(0xFF, this.writeOffset);
+    this.batch.postMessage(this.writing, [this.writing]);
+    this.writing = null;
+    this.writeOffset = 0;
+};
+
+GraphicsManager.prototype.newState = function() {
+    this.startCommand(this.BatchNewState);
+    this.currentResult = 0;
+};
+
+GraphicsManager.prototype.pushMatrix = function(matrix) {
+    this.startCommand(this.BatchPushMatrix);
+    matrix.buffer.imbue().copy(this.writing, this.writeOffset, 0);
+    this.writeOffset += 64;
+    return this.currentStore++;
+};
+
+GraphicsManager.prototype.popMatrix = function() {
+    this.startCommand(this.BatchPopMatrix);
+    this.currentStore--;
+};
+
+GraphicsManager.prototype.updateMatrix = function(position, matrix) {
+    this.startCommand(this.BatchUpdateMatrix);
+    this.writing.writeUInt16BE(position, this.writeOffset);
+    matrix.buffer.imbue().copy(this.writing, this.writeOffset += 2, 0);
+    this.writeOffset += 64;
+};
+
+GraphicsManager.prototype.pushMultiply = function(a, b) {
+    this.startCommand(this.BatchPushMultiply);
+    this.writing.writeUInt8(a, this.writeOffset);
+    this.writing.writeUInt8(b, this.writeOffset += 1);
+    this.writeOffset += 1;
+    return this.currentResult++;
+};
+
+GraphicsManager.prototype.draw = function(vertices, indices, program, order) {
+    this.startCommand(this.BatchDraw);
+    this.writing.writeUInt32BE(vertices, this.writeOffset);
+    this.writing.writeUInt32BE(indices!==undefined?indices:-1, this.writeOffset += 4);
+    this.writing.writeUInt32BE(program, this.writeOffset += 4);
+    this.writing.writeUInt8(order, this.writeOffset += 4);
+    this.writeOffset += 1;
+    this.callsSent++;
+};
+
+GraphicsManager.prototype.startFrame = function() {
+    this.currentStore = 0;
+    this.currentCommand = 0;
 };
 
 GraphicsManager.prototype.endFrame = function() {
-    if (this.glext_ft) {
-        this.glext_ft.frameTerminator();
+    //if (this.glext_ft) {
+        //this.glext_ft.frameTerminator();
+    //}
+
+    this.startCommand(this.BatchComplete);
+    this.flushCommand();
+
+    this.batch.postMessage("end");
+
+    this.finish();
+};
+
+GraphicsManager.prototype.finish = function(internal) {
+    if(!this.frameEnded && !internal)
+    {
+        this.frameEnded = true;
+    }
+
+    if(this.frameEnded && this.processingComplete)
+    {
+        this.batchEnded = false;
+        this.frameEnded = false;
+        this.processingComplete = false;
+        this.batchStarted = false;
+
+        this.readOffset = 0;
+
+        this.callsReceived = 0;
+        this.callsSent = 0;
+
+        if(this.finishCallback)this.finishCallback();
     }
 };
+
+//Batch operations
+GraphicsManager.prototype.BatchNewState = 0;
+GraphicsManager.prototype.BatchPushMultiply = 1;
+GraphicsManager.prototype.BatchPopMultiply = 2;
+GraphicsManager.prototype.BatchPushMatrix = 3;
+GraphicsManager.prototype.BatchPopMatrix = 4;
+GraphicsManager.prototype.BatchUpdateMatrix = 5;
+GraphicsManager.prototype.BatchDraw = 6;
+GraphicsManager.prototype.BatchComplete = 7;
+
+//Batch operand types
+GraphicsManager.prototype.StoredMatrix = 0;
+GraphicsManager.prototype.TargetMatrix = 1;
+
+//Batch result types
+GraphicsManager.prototype.UniformMatrix = 0;
 
 //Shaders
 GraphicsManager.prototype.FragmentShader = 0;
@@ -210,3 +499,14 @@ GraphicsManager.prototype.VertexShader = 1;
 
 //Element types
 GraphicsManager.prototype.Triangles = 0;
+
+//Number types
+GraphicsManager.prototype.Double = [8];
+GraphicsManager.prototype.Float = [4];
+GraphicsManager.prototype.Long = [8];
+GraphicsManager.prototype.Integer = [4];
+GraphicsManager.prototype.Short = [2];
+GraphicsManager.prototype.Byte = [1];
+
+GraphicsManager.prototype.Perspective = 0;
+GraphicsManager.prototype.GlobalUniformCount = 1;

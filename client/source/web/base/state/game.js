@@ -5,6 +5,13 @@ function GameState() {
     this.onBundleLoaded = this.onBundleLoaded.bind(this);
 
     this.visible = false;
+    this.fps = 0;
+    this.fragment = null;
+    this.holder = null;
+    this.fpsCounter = null;
+    this.fpsTotal = 0;
+    this.fpsCount = 0;
+    this.fpsList = new RingBuffer();
 }
 
 GameState.prototype = new StatePrototype();
@@ -14,13 +21,9 @@ GameState.prototype.subLoad = function() {
     this.holder = document.createElement("div");
     this.holder.id = "game";
 
-    this.fps = document.createElement("div");
-    this.fps.classList.add("fps");
-    this.holder.appendChild(this.fps);
-
-    this.fpsTotal = 0;
-    this.fpsList = [];
-    this.fpsCount = 0;
+    this.fpsCounter = document.createElement("div");
+    this.fpsCounter.classList.add("fps");
+    this.holder.appendChild(this.fpsCounter);
 
     this.fragment.appendChild(this.holder);
 
@@ -83,8 +86,8 @@ GameState.prototype.show = function() {
     this.camera.addComponent(CameraComponent).activate();
     this.camera.addComponent(TransformComponent).configure({
         parent: this.player.getComponent(TransformComponent),
-        position: vec3.fromValues(0, 180, 180),
-        rotation: quat.rotateX(quat.create(), quat.zero, -45 * Math.PI / 180),
+        position: vec3.fromValues(0, 40, 20),
+        rotation: quat.rotateX(quat.create(), quat.zero, -55 * Math.PI / 180),
         watcher: this.camera.getComponent(CameraComponent)
     });
 };
@@ -93,10 +96,10 @@ GameState.prototype.subDestroy = function() {
     window.ui.removeChild(this.holder);
 };
 
-GameState.prototype.update = function(dt) {
+GameState.prototype.start = function(dt) {
     if( this.visible )
     {
-        if( this.fpsList.length > 10 )
+        if( this.fpsList.span === this.fpsList.length && this.fpsList.length === 500 )
         {
             this.fpsTotal -= this.fpsList.shift();
             this.fpsCount--;
@@ -105,17 +108,21 @@ GameState.prototype.update = function(dt) {
         this.fpsTotal += dt;
         this.fpsCount++;
 
-        var fps = 1000.0 * this.fpsCount / this.fpsTotal;
-        this.fps.innerHTML = fps.toFixed(1) + "";
+        this.fps = ( 1000.0 * this.fpsCount / this.fpsTotal ).toFixed(2);
+        this.fpsCounter.innerHTML = this.fps;
 
         /*var transform = this.player.getComponent(TransformComponent);
         quat.rotateX(transform.rotation, transform.rotation, 0.0001 * dt);
         transform.update();*/
 
-        this.input.update(dt);
-        this.interior.update(dt);
-        this.render.update(dt);
+        this.input.start(dt);
+        this.interior.start(dt);
+        this.render.start(dt);
     }
+};
+
+GameState.prototype.finish = function() {
+    this.render.finish();
 };
 
 GameState.prototype.handleMessage = function(message) {

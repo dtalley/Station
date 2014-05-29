@@ -1,12 +1,12 @@
 {
-    "attributes":{
-        "vpos": "aVertexPosition",
-        "vcol": "aVertexColor"
-    },
-    "uniforms":{
-        "pm": "uPMatrix",
-        "mvm": "uMVMatrix"
-    }
+    "attributes":[
+        ["vertex", "aVertexPosition"],
+        ["color", "aVertexColor"]
+    ],
+    "uniforms":[
+        ["pm", "uPMatrix"],
+        ["mvm", "uMVMatrix"]
+    ]
 }
 
 attribute vec3 aVertexPosition;

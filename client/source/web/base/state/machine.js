@@ -13,21 +13,20 @@ StateMachine.prototype.push = function(state) {
         this.top.cover(state);
     }
 
-    this.states.push(state);
     var oldTop = this.top;
     this.top = state;
-    state.load(this, oldTop);
+    this.top.load(this, oldTop);
 
     return this;
 };
 
 StateMachine.prototype.pop = function() {
-    if( this.states.length === 0 )
+    if( !this.top )
     {
         return;
     }
 
-    this.top = this.states.pop().destroy().under;
+    this.top = this.top.destroy().under;
 
     if( this.top )
     {
@@ -38,9 +37,13 @@ StateMachine.prototype.pop = function() {
 };
 
 StateMachine.prototype.collapse = function() {
-    while(this.states[0] !== this.top)
+    if(!this.top)return;
+    var state = this.top.under;
+    while(state)
     {
-        this.states.shift().destroy();
+        var purge = state;
+        state = state.under;
+        purge.destroy();
     }
 
     return this;
@@ -57,12 +60,24 @@ StateMachine.prototype.onStateDestroyed = function(state) {
 
 };
 
-StateMachine.prototype.update = function(dt) {
+StateMachine.prototype.start = function(dt) {
     if(dt===0)return;
+    if(dt>20)console.log(dt);
+    var state = this.top;
+    while(state)
+    {
+        state.start(dt);
+        state = state.under;
+    }
+};
 
-    this.states.forEach(function(state){
-        state.update(dt);
-    });
+StateMachine.prototype.finish = function() {
+    var state = this.top;
+    while(state)
+    {
+        state.finish();
+        state = state.under;
+    }
 };
 
 StateMachine.prototype.handleMessage = function(message) {
@@ -73,7 +88,7 @@ StateMachine.prototype.handleMessage = function(message) {
     }
 
     return !!state;
-}
+};
 
 StateMachine.prototype.handleConnect = function(connection) {
     var state = this.top;
@@ -83,4 +98,4 @@ StateMachine.prototype.handleConnect = function(connection) {
     }
 
     return !!state;
-}
+};

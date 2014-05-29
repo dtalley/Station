@@ -60,6 +60,7 @@ function condense() {
 }
 
 function build() {
+    return;
     console.log("Building client...");
     walk(sourcePath, function(err, files){
         if(err)

@@ -3,5 +3,6 @@ tools/build/node_modules/
 *.sublime-workspace
 gen/
 client/nw/
+client/atom-shell/
 client/dist/
 *.lnk

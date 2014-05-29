@@ -8,7 +8,7 @@ function InteriorProcessor(em) {
 
 InteriorProcessor.prototype = new ProcessorPrototype();
 
-InteriorProcessor.prototype.update = function(dt) {
+InteriorProcessor.prototype.start = function(dt) {
     var dynamic;
     count = this.dynamics.length;
     for( i = 0; i < count; i++ )
@@ -21,16 +21,9 @@ InteriorProcessor.prototype.update = function(dt) {
             var input = dynamic.entity.input;
             if( input.direction[0] || input.direction[1] )
             {
-                vec3.set(this.mv, dt * 0.03 * input.direction[0], 0, dt * 0.03 * input.direction[1]);
+                vec3.set(this.mv, dt * 0.01 * input.direction[0], 0, dt * 0.01 * input.direction[1]);
                 vec3.add(dynamic.entity.transform.position, dynamic.entity.transform.position, this.mv);
-                if( dynamic.entity.camera )
-                {
-                    dynamic.entity.camera.update();
-                }
-                else
-                {
-                    dynamic.entity.transform.update();
-                }
+                dynamic.entity.transform.update();
 
                 if(dynamic.player)
                 {
@@ -88,20 +81,45 @@ InteriorProcessor.prototype.generateChunk = function(container, x, y) {
     
     var size = container.size;
     var model = new ModelAsset();
-    model.vertices = new Float32Array([
-        0.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        0.0, 0.0, size,
-        0.0, 1.0, 0.0,
-        size, 0.0, size,
-        0.0, 0.0, 1.0,
-        size, 0.0, 0.0,
-        1.0, 1.0, 1.0
-    ]);
-    model.indices = new Uint16Array([
-        0, 1, 2,
-        2, 3, 0
-    ]);
+    var verts = [];
+    var idx = [];
+    
+    var total = container.size * container.size;
+    for( var i = 0; i < total; i++ )
+    {
+        var col = Math.floor(i/container.size);
+        var row = i % container.size;
+        verts = verts.concat([
+            col * 1.0, 0.0, row * 1.0,
+            1.0, 0.0, 0.0,
+            col * 1.0, 0.0, row * 1.0 + 1.0,
+            0.0, 1.0, 0.0,
+            col * 1.0 + 1.0, 0.0, row * 1.0 + 1.0,
+            0.0, 0.0, 1.0,
+            col * 1.0 + 1.0, 0.0, row * 1.0,
+            1.0, 1.0, 1.0
+        ]);
+        var str = i * 4;
+        idx = idx.concat([
+            str, str + 1, str + 2,
+            str + 2, str + 3, str
+        ]);
+    }
+    
+    model.vertices = new Float32Array(verts);
+    model.indices = new Uint16Array(idx);
+    model.attributes = [
+        {
+            name: "vertex",
+            type: window.gr.Float,
+            count: 3
+        },
+        {
+            name: "color",
+            type: window.gr.Float,
+            count: 3
+        }
+    ];
     model.createBuffers();
     
     chunk.addComponent(ModelComponent).configure({

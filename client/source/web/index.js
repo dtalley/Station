@@ -2,8 +2,13 @@ Orionark.Application = function() {
     this.onNetworkMessage = this.onNetworkMessage.bind(this);
     this.onClientReady = this.onClientReady.bind(this);
     this.onBaseLoaded = this.onBaseLoaded.bind(this);
-    this.onWindowUpdate = this.onWindowUpdate.bind(this);
     this.onWindowResized = this.onWindowResized.bind(this);
+
+    this.start = this.start.bind(this);
+    this.finish = this.finish.bind(this);
+
+    this.time = 0;
+    this.now = 0;
 
     var process = process || null;
     if( process )
@@ -90,28 +95,32 @@ Orionark.Application.prototype = {
     },
 
     onBaseLoaded: function() {
-        window.gr = new GraphicsManager();
+        window.gr = new GraphicsManager(this.finish);
         window.asset = new AssetManager();
         window.ui = document.getElementById("ui");
 
         this.machine = new StateMachine();
         this.machine.push(new GameState());
 
-        window.addEventListener("message", this.onWindowUpdate);
-        window.postMessage(performance.now(), '*');
-
         window.addEventListener("resize", this.onWindowResized);
         this.onWindowResized();
+
+        this.time = performance.now();
+        this.start();
     },
 
-    onWindowUpdate: function(then) {
-        var now = performance.now();
+    start: function() {
+        if(!window.gr.enabled)return;
+        this.now = performance.now();
         window.gr.startFrame();
-        this.machine.update(now-then.data);
+        this.machine.start(this.now-this.time);
+        this.time = this.now;
         window.gr.endFrame();
-        setTimeout(function(){
-            window.postMessage(now, '*');
-        },0);
+    },
+
+    finish: function() {
+        this.machine.finish();
+        window.requestAnimationFrame(this.start);
     },
 
     onWindowResized: function() {

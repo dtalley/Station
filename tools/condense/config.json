@@ -46,13 +46,25 @@
         {
             "input": [
                 "client/source/web/gen/messages.worker.js",
-                "common/source/client_header.js",
+                "client/source/web/library.js",
                 "common/source/processor.js",
                 "client/source/web/network/network.js"
             ],
 
             "output": [
                 "client/source/node/gen/network.js"
+            ]
+        },
+
+        {
+            "input": [
+                "client/source/web/library.js",
+                "client/source/web/base/glmatrix.js",
+                "client/source/web/batch/batch.js"
+            ],
+
+            "output": [
+                "client/source/node/gen/batch.js"
             ]
         },
 
