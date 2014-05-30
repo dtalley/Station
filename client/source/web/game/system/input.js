@@ -12,10 +12,10 @@ function InputProcessor() {
     window.onkeydown = this.onKeyDown;
     window.onkeyup = this.onKeyUp;
 
-    /*window.onmousedown = this.onMouseDown;
+    window.onmousedown = this.onMouseDown;
     window.onmouseup = this.onMouseUp;
 
-    window.onmousemove = this.onMouseMove;*/
+    window.onmousemove = this.onMouseMove;
 }
 
 InputProcessor.prototype = new ProcessorPrototype();

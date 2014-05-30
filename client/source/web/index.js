@@ -1,3 +1,6 @@
+//console.time = function(){};
+//console.timeEnd = function(){};
+
 Orionark.Application = function() {
     this.onNetworkMessage = this.onNetworkMessage.bind(this);
     this.onClientReady = this.onClientReady.bind(this);
@@ -10,7 +13,7 @@ Orionark.Application = function() {
     this.time = 0;
     this.now = 0;
     this.dt = 0;
-    this.step = 1.0 / 30.0;
+    this.step = 1.0 / 60.0;
     this.accumulator = 0.0;
 
     var process = process || null;
@@ -113,23 +116,32 @@ Orionark.Application.prototype = {
     },
 
     start: function() {
+        //console.timeEnd("onk_finish");
+        //console.time("onk_start");
+
         var now = performance.now();
         this.dt = now - this.time;
         this.time = now;
-        this.accumulator += this.dt;
 
+        //console.time("onk_simulate");
+        this.accumulator += this.dt;
         while(this.accumulator >= this.step)
         {
             this.machine.simulate();
             this.accumulator -= this.step;
         }
+        //console.timeEnd("onk_simulate");
 
         window.gr.startFrame();
+        //console.time("onk_gather");
         this.machine.render();
+        //console.timeEnd("onk_gather");
         window.gr.endFrame();
     },
 
     finish: function() {
+        //console.timeEnd("onk_start");
+        //console.time("onk_finish");
         window.requestAnimationFrame(this.start);
     },
 

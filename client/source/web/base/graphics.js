@@ -24,7 +24,7 @@ function GraphicsManager(finishCallback) {
     this.programs = [];
 
     this.canvas = document.getElementsByTagName("canvas")[0];
-    this.gl = this.canvas.getContext("webgl");
+    this.gl = this.canvas.getContext("webgl", {alpha:false});
 
     if( !this.gl )
     {
@@ -277,22 +277,13 @@ GraphicsManager.prototype.resize = function(width, height) {
 GraphicsManager.prototype.onBatchMessage = function(event) {
     if( !event.data )
     {
-        if( this.commandQueue.span === 0 )
-        {
-            this.processingComplete = true;
-        }
+        //console.timeEnd("onk_batch");
         this.batchEnded = true;
-        this.finish(true);
+        this.finish(true);        
     }
     else if( event.data.byteLength )
     {
         this.commandQueue.push(event.data.imbue());
-
-        if(this.commandQueue.span === 1) 
-        {
-            this.reading = event.data;
-            this.process();
-        }
     }
 };
 
@@ -361,11 +352,9 @@ GraphicsManager.prototype.process = function() {
         }
         else
         {
-            if( this.batchEnded )
-            {
-                this.processingComplete = true;
-                this.finish(true);
-            }
+            //console.timeEnd("onk_draw");
+            this.processingComplete = true;
+            this.finish(true);
             break;
         }
     }
@@ -455,6 +444,19 @@ GraphicsManager.prototype.endFrame = function() {
 
     this.batch.postMessage();
 
+    //console.time("onk_batch");
+    //console.time("onk_draw");
+
+    if( this.commandQueue.span > 0 )
+    {
+        this.reading = this.commandQueue.first;
+        this.process();
+    }
+    else
+    {
+        this.processingComplete = true;
+    }
+
     this.finish(false);
 };
 
@@ -464,7 +466,7 @@ GraphicsManager.prototype.finish = function(internal) {
         this.frameEnded = true;
     }
 
-    if(this.frameEnded && this.processingComplete)
+    if(this.frameEnded && this.processingComplete && this.batchEnded)
     {
         this.batchEnded = false;
         this.frameEnded = false;

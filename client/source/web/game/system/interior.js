@@ -89,15 +89,20 @@ InteriorProcessor.prototype.generateChunk = function(container, x, y) {
     {
         var col = Math.floor(i/container.size);
         var row = i % container.size;
+        var xdist = Math.min(col, container.size-col);
+        var ydist = Math.min(row, container.size-row);
+        var dist = Math.min(xdist, ydist);
+        var color = 1 - ( dist / ( container.size / 2 ) );
+        var yper = row / container.size;
         verts = verts.concat([
             col * 1.0, 0.0, row * 1.0,
-            Math.random(), 0.0, 0.0,
+            color, 0.0, yper,
             col * 1.0, 0.0, row * 1.0 + 1.0,
-            0.0, Math.random(), 0.0,
+            color, 0.0, yper,
             col * 1.0 + 1.0, 0.0, row * 1.0 + 1.0,
-            0.0, 0.0, Math.random(),
+            color, 0.0, yper,
             col * 1.0 + 1.0, 0.0, row * 1.0,
-            Math.random(), Math.random(), Math.random()
+            color, 0.0, yper
         ]);
         var str = i * 4;
         idx = idx.concat([
