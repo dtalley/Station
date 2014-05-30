@@ -21,9 +21,9 @@ GameState.prototype.subLoad = function() {
     this.holder = document.createElement("div");
     this.holder.id = "game";
 
-    this.fpsCounter = document.createElement("div");
+    /*this.fpsCounter = document.createElement("div");
     this.fpsCounter.classList.add("fps");
-    this.holder.appendChild(this.fpsCounter);
+    this.holder.appendChild(this.fpsCounter);*/
 
     this.fragment.appendChild(this.holder);
 
@@ -37,7 +37,7 @@ GameState.prototype.onGameProgress = function(loaded, total) {
 GameState.prototype.onGameLoaded = function() {
     this.em = new EntityManager();
 
-    this.render = new RenderProcessor();
+    this.renderer = new RenderProcessor();
     this.interior = new InteriorProcessor(this.em);
     this.input = new InputProcessor();
 
@@ -96,33 +96,31 @@ GameState.prototype.subDestroy = function() {
     window.ui.removeChild(this.holder);
 };
 
-GameState.prototype.start = function(dt) {
+GameState.prototype.simulate = function() {
     if( this.visible )
     {
-        if( this.fpsList.span === this.fpsList.length && this.fpsList.length === 500 )
+        this.input.start();
+        this.interior.start();
+    }
+};
+
+GameState.prototype.render = function() {
+    if( this.visible )
+    {
+        /*if( this.fpsList.span === this.fpsList.length && this.fpsList.length === 500 )
         {
             this.fpsTotal -= this.fpsList.shift();
             this.fpsCount--;
         }
-        this.fpsList.push(dt);
-        this.fpsTotal += dt;
+        this.fpsList.push(window.app.dt);
+        this.fpsTotal += window.app.dt;
         this.fpsCount++;
 
         this.fps = ( 1000.0 * this.fpsCount / this.fpsTotal ).toFixed(2);
-        this.fpsCounter.innerHTML = this.fps;
+        this.fpsCounter.innerHTML = this.fps;*/
 
-        /*var transform = this.player.getComponent(TransformComponent);
-        quat.rotateX(transform.rotation, transform.rotation, 0.0001 * dt);
-        transform.update();*/
-
-        this.input.start(dt);
-        this.interior.start(dt);
-        this.render.start(dt);
+        this.renderer.start();
     }
-};
-
-GameState.prototype.finish = function() {
-    this.render.finish();
 };
 
 GameState.prototype.handleMessage = function(message) {

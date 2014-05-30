@@ -31,7 +31,7 @@ function BatchManager() {
 
     this.completeReceived = false;
     this.flushReceived = false;
-    this.finishedProcessing = false;
+    this.processingComplete = false;
 
     this.stateQueue = new RingBuffer();
     this.statePool = new StackPool();
@@ -83,7 +83,7 @@ BatchManager.prototype.process = function() {
 
             if(this.completeReceived)
             {
-                this.finishedProcessing = true;
+                this.processingComplete = true;
                 return this.end(true);
             }
             else if(this.commandQueue.span>0) 
@@ -169,6 +169,7 @@ BatchManager.prototype.startCommand = function() {
 
 BatchManager.prototype.flushCommand = function() {
     this.writing.writeUInt8(0xFF, this.writeOffset);
+    this.writing.discard();
     self.postMessage(this.writing, [this.writing]);
     this.writing = null;
     this.writeOffset = 0;
@@ -202,7 +203,6 @@ BatchManager.prototype.flush = function() {
     {
         this.flushCommand();
     }
-    this.writeOffset = 0;
 
     while(this.stateQueue.span) 
     {
@@ -216,7 +216,9 @@ BatchManager.prototype.flush = function() {
     {
         var command = this.commandPool.pop();
         command.writeUInt8(0xFF, 0);
+        command.discard();
         self.postMessage(command, [command]);
+        command = null;
     }
 };
 
@@ -224,13 +226,18 @@ BatchManager.prototype.end = function(internal) {
     if( !this.flushReceived && !internal )
     {
         this.flushReceived = true;
+
+        if(this.commandQueue.span === 0)
+        {
+            this.processingComplete = true;
+        }
     }
 
-    if(this.finishedProcessing && this.flushReceived)
+    if(this.processingComplete && this.flushReceived)
     {
         this.flushReceived = false;
         this.completeReceived = false;
-        this.finishedProcessing = false;
+        this.processingComplete = false;
 
         this.readOffset = 0;
 
@@ -238,7 +245,7 @@ BatchManager.prototype.end = function(internal) {
 
         this.flush();
 
-        self.postMessage("end");
+        setTimeout(self.postMessage, 0);
     }
 };
 
@@ -256,12 +263,12 @@ BatchManager.prototype.commands = [
 var manager = new BatchManager();
 
 self.onmessage = function(message) {
-    if( message.data.byteLength)
+    if( !message.data )
+    {
+        manager.end(false);
+    }
+    else if( message.data.byteLength)
     {
         manager.command(message.data.imbue());
-    }
-    else if( message.data === "end" )
-    {
-        manager.end();
     }
 };

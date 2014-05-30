@@ -8,7 +8,7 @@ function InteriorProcessor(em) {
 
 InteriorProcessor.prototype = new ProcessorPrototype();
 
-InteriorProcessor.prototype.start = function(dt) {
+InteriorProcessor.prototype.start = function() {
     var dynamic;
     count = this.dynamics.length;
     for( i = 0; i < count; i++ )
@@ -21,7 +21,7 @@ InteriorProcessor.prototype.start = function(dt) {
             var input = dynamic.entity.input;
             if( input.direction[0] || input.direction[1] )
             {
-                vec3.set(this.mv, dt * 0.01 * input.direction[0], 0, dt * 0.01 * input.direction[1]);
+                vec3.set(this.mv, window.app.step * 0.01 * input.direction[0], 0, window.app.step * 0.01 * input.direction[1]);
                 vec3.add(dynamic.entity.transform.position, dynamic.entity.transform.position, this.mv);
                 dynamic.entity.transform.update();
 
@@ -83,7 +83,7 @@ InteriorProcessor.prototype.generateChunk = function(container, x, y) {
     var model = new ModelAsset();
     var verts = [];
     var idx = [];
-    
+
     var total = container.size * container.size;
     for( var i = 0; i < total; i++ )
     {
@@ -91,13 +91,13 @@ InteriorProcessor.prototype.generateChunk = function(container, x, y) {
         var row = i % container.size;
         verts = verts.concat([
             col * 1.0, 0.0, row * 1.0,
-            1.0, 0.0, 0.0,
+            Math.random(), 0.0, 0.0,
             col * 1.0, 0.0, row * 1.0 + 1.0,
-            0.0, 1.0, 0.0,
+            0.0, Math.random(), 0.0,
             col * 1.0 + 1.0, 0.0, row * 1.0 + 1.0,
-            0.0, 0.0, 1.0,
+            0.0, 0.0, Math.random(),
             col * 1.0 + 1.0, 0.0, row * 1.0,
-            1.0, 1.0, 1.0
+            Math.random(), Math.random(), Math.random()
         ]);
         var str = i * 4;
         idx = idx.concat([

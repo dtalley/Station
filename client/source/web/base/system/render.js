@@ -4,7 +4,7 @@ function RenderProcessor() {
 
 RenderProcessor.prototype = new ProcessorPrototype();
 
-RenderProcessor.prototype.start = function(dt) {
+RenderProcessor.prototype.start = function() {
     if(!window.gr.enabled)return;
 
     var modelCount = ModelComponent.prototype.stack.length;
@@ -28,7 +28,7 @@ RenderProcessor.prototype.start = function(dt) {
         window.gr.enabled = false;
 
     if(this.marked===undefined)this.marked = 50;*/
-
+    
     for( var i = 0; i < modelCount; i++ )
     {
         var model = ModelComponent.prototype.stack[i];
@@ -51,8 +51,4 @@ RenderProcessor.prototype.start = function(dt) {
             window.gr.popMatrix();
         }
     }
-};
-
-RenderProcessor.prototype.finish = function() {
-    
 };

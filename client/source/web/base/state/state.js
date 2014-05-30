@@ -64,4 +64,5 @@ StatePrototype.prototype.internalMessage = function(message, state){
 };
 StatePrototype.prototype.handleInternalMessage = function(message){};
 
-StatePrototype.prototype.update = function(dt){};
+StatePrototype.prototype.simulate = function(){};
+StatePrototype.prototype.render = function(){};

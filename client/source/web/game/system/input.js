@@ -20,7 +20,7 @@ function InputProcessor() {
 
 InputProcessor.prototype = new ProcessorPrototype();
 
-InputProcessor.prototype.start = function(dt) {
+InputProcessor.prototype.start = function() {
 
 };
 

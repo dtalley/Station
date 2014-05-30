@@ -1,1 +1,1 @@
-start chrome --allow-file-access-from-files --chrome-frame --window-size=1280,720 --new-window  --window-position=580,240 --app="%~dp0..\source\node\gen\index.html"
+start chrome --allow-file-access-from-files --js-flags=--trace-gc --enable-memory-info --chrome-frame --window-size=1280,720 --new-window  --window-position=580,240 %~dp0..\source\node\gen\index.html

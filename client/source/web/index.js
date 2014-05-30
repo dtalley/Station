@@ -9,6 +9,9 @@ Orionark.Application = function() {
 
     this.time = 0;
     this.now = 0;
+    this.dt = 0;
+    this.step = 1.0 / 30.0;
+    this.accumulator = 0.0;
 
     var process = process || null;
     if( process )
@@ -23,8 +26,8 @@ Orionark.Application = function() {
 
 Orionark.Application.prototype = {
     onClientReady: function() {
-        this.network = new window.Worker("network.js");
-        this.network.addEventListener("message", this.onNetworkMessage, false);
+        //this.network = new window.Worker("network.js");
+        //this.network.addEventListener("message", this.onNetworkMessage, false);
 
         this.loadScript("base.js", this.onBaseLoaded);
     },
@@ -102,24 +105,31 @@ Orionark.Application.prototype = {
         this.machine = new StateMachine();
         this.machine.push(new GameState());
 
-        window.addEventListener("resize", this.onWindowResized);
+        window.addEventListener("resize", this.onWindowResized, false);
         this.onWindowResized();
 
         this.time = performance.now();
-        this.start();
+        this.finish();
     },
 
     start: function() {
-        if(!window.gr.enabled)return;
-        this.now = performance.now();
+        var now = performance.now();
+        this.dt = now - this.time;
+        this.time = now;
+        this.accumulator += this.dt;
+
+        while(this.accumulator >= this.step)
+        {
+            this.machine.simulate();
+            this.accumulator -= this.step;
+        }
+
         window.gr.startFrame();
-        this.machine.start(this.now-this.time);
-        this.time = this.now;
+        this.machine.render();
         window.gr.endFrame();
     },
 
     finish: function() {
-        this.machine.finish();
         window.requestAnimationFrame(this.start);
     },
 

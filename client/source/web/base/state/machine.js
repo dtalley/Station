@@ -60,22 +60,20 @@ StateMachine.prototype.onStateDestroyed = function(state) {
 
 };
 
-StateMachine.prototype.start = function(dt) {
-    if(dt===0)return;
-    if(dt>20)console.log(dt);
+StateMachine.prototype.simulate = function() {
     var state = this.top;
     while(state)
     {
-        state.start(dt);
+        state.simulate();
         state = state.under;
     }
 };
 
-StateMachine.prototype.finish = function() {
+StateMachine.prototype.render = function() {
     var state = this.top;
     while(state)
     {
-        state.finish();
+        state.render();
         state = state.under;
     }
 };

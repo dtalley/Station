@@ -185,6 +185,15 @@ EventEmitter.prototype.off = function(event, callback) {
     });
 };
 
+var abp = ArrayBuffer.prototype;
+
+function FastArrayBuffer() {
+
+}
+
+FastArrayBuffer.prototype = Object.create(ArrayBuffer.prototype);
+
+
 ArrayBuffer.prototype.copy = function(target, targetOffset, sourceOffset)
 {
     target.a.set(this.a, targetOffset);
@@ -208,6 +217,11 @@ ArrayBuffer.prototype.imbue = function() {
     this.b = new Int8Array(this, 0, this.byteLength);
 
     return this;
+};
+
+ArrayBuffer.prototype.discard = function() {
+    //delete this.a;
+    //delete this.b;
 };
 
 ArrayBuffer.prototype.readUInt8 = function(offset) {

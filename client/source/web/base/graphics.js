@@ -275,7 +275,16 @@ GraphicsManager.prototype.resize = function(width, height) {
 };
 
 GraphicsManager.prototype.onBatchMessage = function(event) {
-    if( event.data.byteLength )
+    if( !event.data )
+    {
+        if( this.commandQueue.span === 0 )
+        {
+            this.processingComplete = true;
+        }
+        this.batchEnded = true;
+        this.finish(true);
+    }
+    else if( event.data.byteLength )
     {
         this.commandQueue.push(event.data.imbue());
 
@@ -284,15 +293,6 @@ GraphicsManager.prototype.onBatchMessage = function(event) {
             this.reading = event.data;
             this.process();
         }
-    }
-    else if( event.data === "end" )
-    {
-        if( this.commandQueue.span === 0 )
-        {
-            this.processingComplete = true;
-        }
-        this.batchEnded = true;
-        this.finish(true);
     }
 };
 
@@ -389,8 +389,9 @@ GraphicsManager.prototype.startCommand = function(type) {
 
 GraphicsManager.prototype.flushCommand = function() {
     this.writing.writeUInt8(0xFF, this.writeOffset);
+    this.writing.discard();
     this.batch.postMessage(this.writing, [this.writing]);
-    this.writing = null;
+    delete this.writing;
     this.writeOffset = 0;
 };
 
@@ -446,12 +447,15 @@ GraphicsManager.prototype.endFrame = function() {
         //this.glext_ft.frameTerminator();
     //}
 
-    this.startCommand(this.BatchComplete);
-    this.flushCommand();
+    if(this.writing)
+    {
+        this.startCommand(this.BatchComplete);
+        this.flushCommand();
+    }
 
-    this.batch.postMessage("end");
+    this.batch.postMessage();
 
-    this.finish();
+    this.finish(false);
 };
 
 GraphicsManager.prototype.finish = function(internal) {
