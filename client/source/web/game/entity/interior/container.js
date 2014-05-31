@@ -6,8 +6,8 @@ Interior.ContainerComponent = function() {
    var size = this.size = 32;
    this.shift = 0;
    while((size >>>= 1) !== 0) this.shift++;
-   this.width = 9;
-   this.height = 9;
+   this.width = 1;
+   this.height = 1;
 
    this.buffer = new Uint32Array(this.size * this.size * this.width * this.height * 2);
 

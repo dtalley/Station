@@ -112,7 +112,6 @@ GraphicsManager.prototype.createProgram = function(vertex, fragment) {
         };
         program[key] = attr.id;
         program.attributes.push(attr);
-        this.gl.enableVertexAttribArray(attr.id);
     }, this);
 
     program.uniforms = [];
@@ -144,6 +143,15 @@ GraphicsManager.prototype.useProgram = function(program) {
         return;
     }
 
+    if(this.program)
+    {
+        var count = this.program.attributes.length;
+        for( var i = 0; i < count; i++ )
+        {
+            this.gl.disableVertexAttribArray(this.program.attributes[i].id);
+        }
+    }
+
     this.ps = true;
 
     if( !program )
@@ -170,16 +178,19 @@ GraphicsManager.prototype.createVertexBuffer = function(vertices, attributes) {
         switch(attribute.type)
         {
             case this.Float:
+            case "Float":
                 type = this.gl.FLOAT;
                 size = 4;
                 break;
 
             case this.Double:
+            case "Double":
                 type = this.gl.DOUBLE;
                 size = 8;
                 break;
 
             case this.Short:
+            case "Short":
                 type = this.gl.UNSIGNED_SHORT;
                 size = 4;
                 break;
@@ -196,6 +207,7 @@ GraphicsManager.prototype.createVertexBuffer = function(vertices, attributes) {
     }
     buffer.stride = offset;
     buffer.count = vertices.length / buffer.stride;
+    this.vb = null;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
     this.buffers.push(buffer);
@@ -213,6 +225,7 @@ GraphicsManager.prototype.createIndexBuffer = function(indices, type) {
             buffer.type = this.gl.TRIANGLES;
             break;
     }
+    this.ib = null;
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
     this.buffers.push(buffer);
@@ -231,21 +244,22 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer)
     {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
         this.vb = vertexBuffer;
+    }
 
-        if( this.ps )
+    if( this.ps )
+    {
+        var count = this.program.attributes.length;
+        for( var i = 0; i < count; i++ )
         {
-            var count = this.program.attributes.length;
-            for( var i = 0; i < count; i++ )
-            {
-                var match = this.program.attributes[i];
-                var attribute = vertexBuffer[match.key];
-                if(!attribute) continue;
-                
-                this.gl.vertexAttribPointer(match.id, attribute.count, attribute.type, attribute.normalized, vertexBuffer.stride, attribute.offset);
-            }
-
-            this.ps = false;
+            var match = this.program.attributes[i];
+            var attribute = vertexBuffer[match.key];
+            
+            if(!attribute) continue;
+            this.gl.enableVertexAttribArray(match.id);
+            this.gl.vertexAttribPointer(match.id, attribute.count, attribute.type, attribute.normalized, vertexBuffer.stride, attribute.offset);
         }
+
+        this.ps = false;
     }
 
     if( indexBuffer && this.ib !== indexBuffer )

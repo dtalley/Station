@@ -7,6 +7,10 @@ function InputComponent() {
     this.view[0] = 0;
     this.view[1] = 0;
 
+    this.pointer = new Float32Array(2);
+    this.pointer[0] = 0;
+    this.pointer[1] = 0;
+
     this.viewSensitivity = 1;
 
     this.dxp = 68;

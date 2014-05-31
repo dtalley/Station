@@ -17,9 +17,8 @@ RenderProcessor.prototype.start = function() {
         this.camera = CameraComponent.active;
         window.gr.updateMatrix(0, this.camera.perspective);
         window.gr.updateMatrix(1, this.camera.ci);
-    }
-
-    if(this.camera.isStale(this.camera.Channel1))
+    } 
+    else if(this.camera.isStale(this.camera.Channel1))
     {
         window.gr.updateMatrix(1, this.camera.ci);
     }

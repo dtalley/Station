@@ -2,6 +2,11 @@ function CameraComponent() {
     this.ci = mat4.create();
     this.perspective = mat4.create();
     mat4.perspective(this.perspective, 15 * Math.PI / 180, window.gr.width / window.gr.height, 0.1, 1000.0);
+    this.revert = mat4.create();
+    this.pi = mat4.create();
+    mat4.invert(this.pi, this.perspective);
+    this.position = vec4.create();
+    this.position[3] = 1;
 
     this.stale = 0xFFFFFF;
 }
@@ -26,6 +31,10 @@ CameraComponent.prototype.activate = function() {
 
 CameraComponent.prototype.update = function() {
     mat4.invert(this.ci, this.entity.transform.matrix);
+    mat4.multiply(this.revert, this.entity.transform.matrix, this.pi);
+    this.position[0] = this.entity.transform.matrix[12];
+    this.position[1] = this.entity.transform.matrix[13];
+    this.position[2] = this.entity.transform.matrix[14];
     this.stale = 0xFFFFFF;
     return this;
 };

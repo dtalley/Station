@@ -35,13 +35,9 @@ GameState.prototype.onGameProgress = function(loaded, total) {
 };
 
 GameState.prototype.onGameLoaded = function() {
-    this.em = new EntityManager();
-
-    this.renderer = new RenderProcessor();
-    this.interior = new InteriorProcessor(this.em);
-    this.input = new InputProcessor();
-
     this.gameAssetBundle = window.asset.createBundle();
+    this.gameAssetBundle.add("models/test/test.oml", true);
+    this.gameAssetBundle.add("materials/test/color.mtrl", true);
     this.gameAssetBundle.add("materials/test/red.mtrl", true);
     this.gameAssetBundle.add("materials/test/green.mtrl", true);
     this.gameAssetBundle.add("materials/test/blue.mtrl", true);
@@ -53,6 +49,12 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 };
 
 GameState.prototype.onBundleLoaded = function() {
+    this.em = new EntityManager();
+
+    this.renderer = new RenderProcessor();
+    this.interior = new InteriorProcessor(this.em);
+    this.input = new InputProcessor();
+    
     this.machine.onStateLoaded(this);
 };
 

@@ -4,6 +4,21 @@ function InteriorProcessor(em) {
 
     this.containers = Interior.ContainerComponent.prototype.stack;
     this.dynamics = Interior.DynamicComponent.prototype.stack;
+
+    this.cursor = this.em.createEntity();
+    this.cursor.addComponent(TransformComponent).configure({
+        scale: vec3.fromValues(0.5, 0.5, 0.5),
+        position: vec3.fromValues(0.5, 0.5, 0.5)
+    });
+    this.cursor.addComponent(ModelComponent).configure({
+        model: window.asset.get("models/test/test.oml"),
+        material: window.asset.get("materials/test/blue.mtrl")
+    });
+
+    this.position = vec4.create();
+    this.ray = vec4.create();
+    this.ground = vec4.fromValues(0.0, 1.0, 0.0, 1.0);
+    this.origin = vec4.fromValues(0, 0, 0, 1.0);
 }
 
 InteriorProcessor.prototype = new ProcessorPrototype();
@@ -19,6 +34,7 @@ InteriorProcessor.prototype.start = function() {
         if(dynamic.character)
         {
             var input = dynamic.entity.input;
+
             if( input.direction[0] || input.direction[1] )
             {
                 vec3.set(this.mv, window.app.step * 0.01 * input.direction[0], 0, window.app.step * 0.01 * input.direction[1]);
@@ -32,6 +48,38 @@ InteriorProcessor.prototype.start = function() {
                         this.generateChunks(dynamic);
                     }
                 }
+            }
+
+            if( input.driven && dynamic.player && CameraComponent.active )
+            {
+                this.position[0] = input.pointer[0];
+                this.position[1] = input.pointer[1];
+                this.position[2] = 0;
+                this.position[3] = 1;
+
+                vec4.transformMat4(this.position, this.position, CameraComponent.active.revert);
+
+                this.position[0] /= this.position[3];
+                this.position[1] /= this.position[3];
+                this.position[2] /= this.position[3];
+
+                this.position[0] -= CameraComponent.active.position[0];
+                this.position[1] -= CameraComponent.active.position[1];
+                this.position[2] -= CameraComponent.active.position[2];
+                this.position[3] = 1;
+
+                //Do dot product, if it equals 0, the mouse didn't touch the ground plane
+
+                //(p0-l0).n / l.n
+                var bottom = vec3.dot(this.position, this.ground);
+                var top = vec3.dot(vec4.subtract(this.ray, this.origin, CameraComponent.active.position), this.ground);
+                var d = top / bottom;
+
+                vec4.add(this.position, CameraComponent.active.position, vec4.scale(this.position, this.position, d));
+
+                this.cursor.transform.position[0] = Math.floor(this.position[0]) + 0.5;
+                this.cursor.transform.position[2] = Math.floor(this.position[2]) + 0.5;
+                this.cursor.transform.update();
             }
         }
     }
@@ -115,7 +163,7 @@ InteriorProcessor.prototype.generateChunk = function(container, x, y) {
     model.indices = new Uint16Array(idx);
     model.attributes = [
         {
-            name: "vertex",
+            name: "position",
             type: window.gr.Float,
             count: 3
         },
@@ -128,7 +176,7 @@ InteriorProcessor.prototype.generateChunk = function(container, x, y) {
     model.createBuffers();
     
     chunk.addComponent(ModelComponent).configure({
-        material: window.asset.get("materials/test/green.mtrl"),
+        material: window.asset.get("materials/test/color.mtrl"),
         model: model
     });
 };

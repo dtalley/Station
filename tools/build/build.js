@@ -15,6 +15,6 @@ else
     else
     {
         var handler = require(__dirname + "/build-" + type + ".js");
-        handler.build();
+        handler.build(process.argv[3]);
     }
 }

@@ -245,7 +245,7 @@ BatchManager.prototype.end = function(internal) {
 
         this.flush();
 
-        setTimeout(self.postMessage, 0);
+        self.postMessage();
     }
 };
 

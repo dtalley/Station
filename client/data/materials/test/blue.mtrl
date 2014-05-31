@@ -2,7 +2,7 @@
     "passes": [
         {
             "program": {
-                "vertex": "shaders/test/test.vert",
+                "vertex": "shaders/test/test2.vert",
                 "fragment": "shaders/test/blue.frag"
             }
         }

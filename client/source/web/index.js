@@ -13,7 +13,7 @@ Orionark.Application = function() {
     this.time = 0;
     this.now = 0;
     this.dt = 0;
-    this.step = 1.0 / 60.0;
+    this.step = 1000.0 / 60.0;
     this.accumulator = 0.0;
 
     var process = process || null;
@@ -119,6 +119,8 @@ Orionark.Application.prototype = {
         //console.timeEnd("onk_finish");
         //console.time("onk_start");
 
+        //clearTimeout(this.timer);
+
         var now = performance.now();
         this.dt = now - this.time;
         this.time = now;
@@ -142,6 +144,7 @@ Orionark.Application.prototype = {
     finish: function() {
         //console.timeEnd("onk_start");
         //console.time("onk_finish");
+        //this.timer = setTimeout(this.start, 0);
         window.requestAnimationFrame(this.start);
     },
 
