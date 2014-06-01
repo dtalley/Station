@@ -7,18 +7,18 @@ function InteriorProcessor(em) {
 
     this.cursor = this.em.createEntity();
     this.cursor.addComponent(TransformComponent).configure({
-        scale: vec3.fromValues(0.5, 0.5, 0.5),
         position: vec3.fromValues(0.5, 0.5, 0.5)
     });
     this.cursor.addComponent(ModelComponent).configure({
         model: window.asset.get("models/test/test.oml"),
-        material: window.asset.get("materials/test/blue.mtrl")
+        material: window.asset.get("materials/test/green.mtrl")
     });
 
     this.position = vec4.create();
     this.ray = vec4.create();
     this.ground = vec4.fromValues(0.0, 1.0, 0.0, 1.0);
     this.origin = vec4.fromValues(0, 0, 0, 1.0);
+    this.result = 0.0;
 }
 
 InteriorProcessor.prototype = new ProcessorPrototype();
@@ -71,14 +71,41 @@ InteriorProcessor.prototype.start = function() {
                 //Do dot product, if it equals 0, the mouse didn't touch the ground plane
 
                 //(p0-l0).n / l.n
-                var bottom = vec3.dot(this.position, this.ground);
-                var top = vec3.dot(vec4.subtract(this.ray, this.origin, CameraComponent.active.position), this.ground);
-                var d = top / bottom;
+                this.result = ( vec3.dot(vec4.subtract(this.ray, this.origin, CameraComponent.active.position), this.ground) ) / ( vec3.dot(this.position, this.ground) );
 
-                vec4.add(this.position, CameraComponent.active.position, vec4.scale(this.position, this.position, d));
+                vec4.add(this.position, CameraComponent.active.position, vec4.scale(this.position, this.position, this.result));
 
-                this.cursor.transform.position[0] = Math.floor(this.position[0]) + 0.5;
-                this.cursor.transform.position[2] = Math.floor(this.position[2]) + 0.5;
+                this.cursor.transform.position[0] = Math.floor(this.position[0]);
+                this.cursor.transform.position[2] = Math.floor(this.position[2]);
+
+                var xleft = this.position[0] - this.cursor.transform.position[0];
+                var ytop = this.position[2] - this.cursor.transform.position[2];
+                var xright = 1 - xleft;
+                var ybottom = 1 - ytop;
+
+                this.cursor.transform.position[0] += 0.5;
+                this.cursor.transform.position[2] += 0.5;
+
+                if(xleft < 0.2 || xright < 0.2)
+                {
+                    this.cursor.transform.scale[0] = 0.1;
+                    this.cursor.transform.position[0] += Math.round(xleft) - 0.5;
+                }
+                else
+                {
+                    this.cursor.transform.scale[0] = 1.1;
+                }
+
+                if(ytop < 0.2 || ybottom < 0.2)
+                {
+                    this.cursor.transform.scale[2] = 0.1;
+                    this.cursor.transform.position[2] += Math.round(ytop) - 0.5;
+                }
+                else
+                {
+                    this.cursor.transform.scale[2] = 1.1;
+                }
+
                 this.cursor.transform.update();
             }
         }

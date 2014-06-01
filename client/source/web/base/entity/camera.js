@@ -1,7 +1,7 @@
 function CameraComponent() {
     this.ci = mat4.create();
     this.perspective = mat4.create();
-    mat4.perspective(this.perspective, 15 * Math.PI / 180, window.gr.width / window.gr.height, 0.1, 1000.0);
+    mat4.perspective(this.perspective, 13 * Math.PI / 180, window.gr.width / window.gr.height, 0.1, 1000.0);
     this.revert = mat4.create();
     this.pi = mat4.create();
     mat4.invert(this.pi, this.perspective);
