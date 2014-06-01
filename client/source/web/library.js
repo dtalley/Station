@@ -219,11 +219,6 @@ ArrayBuffer.prototype.imbue = function() {
     return this;
 };
 
-ArrayBuffer.prototype.discard = function() {
-    //delete this.a;
-    //delete this.b;
-};
-
 ArrayBuffer.prototype.readUInt8 = function(offset) {
     return this.a[offset];
 };

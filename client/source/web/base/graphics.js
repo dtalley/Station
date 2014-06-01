@@ -18,7 +18,6 @@ function GraphicsManager(finishCallback) {
     this.uniformReference = {};
 
     this.finishCallback = finishCallback;
-    this.onBatchMessage = this.onBatchMessage.bind(this);
 
     this.buffers = [];
     this.programs = [];
@@ -39,7 +38,7 @@ function GraphicsManager(finishCallback) {
     this.gl.enable(this.gl.BLEND);
     //this.gl.enable(this.gl.CULL_FACE);
     //this.gl.cullFace(this.gl.BACK);
-    this.gl.depthFunc(this.gl.LEQUAL);
+    this.gl.depthFunc(this.gl.ALWAYS);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
     this.batch = new window.Worker("batch.js");
@@ -224,6 +223,18 @@ GraphicsManager.prototype.createIndexBuffer = function(indices, type) {
         case this.Triangles:
             buffer.type = this.gl.TRIANGLES;
             break;
+
+        case this.LineStrip:
+            buffer.type = this.gl.LINE_STRIP;
+            break;
+
+        case this.Lines:
+            buffer.type = this.gl.LINES;
+            break;
+
+        case this.Points:
+            buffer.type = this.gl.POINTS;
+            break;
     }
     this.ib = null;
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
@@ -358,11 +369,11 @@ GraphicsManager.prototype.process = function() {
         
         this.commandPool.push(this.commandQueue.shift());
         this.reading = null;
-        this.readOffset = 0;
 
         if( this.commandQueue.span > 0 )
         {
             this.reading = this.commandQueue.first;
+            this.readOffset = 0;
         }
         else
         {
@@ -379,6 +390,7 @@ GraphicsManager.prototype.startCommand = function(type) {
     {
         if(this.commandPool.top>0) this.writing = this.commandPool.pop().imbue();
         else this.writing = new ArrayBuffer(1024 * 16).imbue();
+        this.writeOffset = 0;
     }
     else if( this.writeOffset > this.commandThreshold )
     {
@@ -392,10 +404,8 @@ GraphicsManager.prototype.startCommand = function(type) {
 
 GraphicsManager.prototype.flushCommand = function() {
     this.writing.writeUInt8(0xFF, this.writeOffset);
-    this.writing.discard();
     this.batch.postMessage(this.writing, [this.writing]);
-    delete this.writing;
-    this.writeOffset = 0;
+    this.writing = null;
 };
 
 GraphicsManager.prototype.newState = function() {
@@ -464,6 +474,7 @@ GraphicsManager.prototype.endFrame = function() {
     if( this.commandQueue.span > 0 )
     {
         this.reading = this.commandQueue.first;
+        this.readOffset = 0;
         this.process();
     }
     else
@@ -487,8 +498,8 @@ GraphicsManager.prototype.finish = function(internal) {
         this.processingComplete = false;
         this.batchStarted = false;
 
-        this.readOffset = 0;
-
+        console.log(this.callsReceived);
+        
         this.callsReceived = 0;
         this.callsSent = 0;
 
@@ -519,6 +530,12 @@ GraphicsManager.prototype.VertexShader = 1;
 
 //Element types
 GraphicsManager.prototype.Triangles = 0;
+GraphicsManager.prototype.LineStrip = 1;
+GraphicsManager.prototype.Lines = 2;
+GraphicsManager.prototype.Points = 3;
+GraphicsManager.prototype.LineLoop = 4;
+GraphicsManager.prototype.TriangleStrip = 5;
+GraphicsManager.prototype.TriangleFan = 6;
 
 //Number types
 GraphicsManager.prototype.Double = [8];

@@ -53,6 +53,6 @@ ModelAsset.prototype.createBuffers = function() {
 
     if( this.indices )
     {
-        this.indexBuffer = window.gr.createIndexBuffer(this.indices, window.gr.Triangles);
+        this.indexBuffer = window.gr.createIndexBuffer(this.indices, this.drawType || window.gr.Triangles);
     }
 };

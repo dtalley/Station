@@ -3,7 +3,7 @@ var Interior = {};
 Interior.ContainerComponent = function() {
    this.loaded = false;
 
-   var size = this.size = 32;
+   var size = this.size = 16;
    this.shift = 0;
    while((size >>>= 1) !== 0) this.shift++;
    this.width = 1;

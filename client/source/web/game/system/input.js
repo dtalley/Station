@@ -4,6 +4,7 @@ function InputProcessor() {
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
+    this.onContextMenu = this.onContextMenu.bind(this);
 
     this.keys = new Uint8Array(268);
     for( var i = 0; i < 268; i++, this.keys[i] = 0 );
@@ -15,6 +16,7 @@ function InputProcessor() {
 
     window.onmousedown = this.onMouseDown;
     window.onmouseup = this.onMouseUp;
+    window.oncontextmenu = this.onContextMenu;
 
     window.onmousemove = this.onMouseMove;
 }
@@ -53,10 +55,16 @@ InputProcessor.prototype.unset = function(code) {
 
 InputProcessor.prototype.onKeyDown = function(event) {
     this.set(event.keyCode);
+    event.preventDefault();
 };
 
 InputProcessor.prototype.onKeyUp = function(event) {
     this.unset(event.keyCode);
+    event.preventDefault();
+};
+
+InputProcessor.prototype.onContextMenu = function(event) {
+    event.preventDefault();
 };
 
 InputProcessor.prototype.onMouseDown = function(event) {
@@ -83,6 +91,7 @@ InputProcessor.prototype.onMouseMove = function(event) {
             c.pointer[1] = 1 - ( ( event.y << 1 ) / window.innerHeight );
         }
     }
+    event.preventDefault();
 };
 
 //Constants

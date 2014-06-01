@@ -65,6 +65,7 @@ BatchManager.prototype.command = function(command) {
     if( this.commandQueue.span === 1 )
     {
         this.reading = command;
+        this.readOffset = 0;
         this.process();
     }
 };
@@ -87,11 +88,13 @@ BatchManager.prototype.process = function() {
                 return this.end(true);
             }
             else if(this.commandQueue.span>0) 
+            {
                 this.reading = this.commandQueue.first;
+                this.readOffset = 0;
+                continue;
+            }
             else
-                throw new Error("Nothing to process!");
-
-            if( this.reading ) this.readOffset = 0;
+                return;
         }
 
         this.processed++;
@@ -159,6 +162,7 @@ BatchManager.prototype.startCommand = function() {
     {
         if(this.commandPool.top>0) this.writing = this.commandPool.pop().imbue();
         else this.writing = new ArrayBuffer(1024 * 16).imbue();
+        this.writeOffset = 0;
     }
     else if( this.writeOffset > this.commandThreshold )
     {
@@ -169,10 +173,8 @@ BatchManager.prototype.startCommand = function() {
 
 BatchManager.prototype.flushCommand = function() {
     this.writing.writeUInt8(0xFF, this.writeOffset);
-    this.writing.discard();
     self.postMessage(this.writing, [this.writing]);
     this.writing = null;
-    this.writeOffset = 0;
 };
 
 BatchManager.prototype.flush = function() {
@@ -216,7 +218,6 @@ BatchManager.prototype.flush = function() {
     {
         var command = this.commandPool.pop();
         command.writeUInt8(0xFF, 0);
-        command.discard();
         self.postMessage(command, [command]);
         command = null;
     }
