@@ -19,9 +19,19 @@ function InteriorProcessor(em) {
     this.ground = vec4.fromValues(0.0, 1.0, 0.0, 1.0);
     this.origin = vec4.fromValues(0, 0, 0, 1.0);
     this.result = 0.0;
+
+    this.dragStart = vec2.fromValues(0, 0);
+
+    this.dragState = this.DragNone;
 }
 
 InteriorProcessor.prototype = new ProcessorPrototype();
+
+InteriorProcessor.prototype.DragNone = 0;
+InteriorProcessor.prototype.DragWallX = 1;
+InteriorProcessor.prototype.DragWallY = 2;
+InteriorProcessor.prototype.DragColumn = 3;
+InteriorProcessor.prototype.DragBlock = 4;
 
 InteriorProcessor.prototype.start = function() {
     var dynamic;
@@ -75,35 +85,132 @@ InteriorProcessor.prototype.start = function() {
 
                 vec4.add(this.position, CameraComponent.active.position, vec4.scale(this.position, this.position, this.result));
 
-                this.cursor.transform.position[0] = Math.floor(this.position[0]);
-                this.cursor.transform.position[2] = Math.floor(this.position[2]);
+                var posX = Math.floor(this.position[0]);
+                var posY = Math.floor(this.position[2]);
 
-                var xleft = this.position[0] - this.cursor.transform.position[0];
-                var ytop = this.position[2] - this.cursor.transform.position[2];
-                var xright = 1 - xleft;
-                var ybottom = 1 - ytop;
+                var xleft = this.position[0] - posX;
+                var ytop = this.position[2] - posY;
 
-                this.cursor.transform.position[0] += 0.5;
-                this.cursor.transform.position[2] += 0.5;
-
-                if(xleft < 0.2 || xright < 0.2)
+                if( this.dragState !== this.DragNone )
                 {
-                    this.cursor.transform.scale[0] = 0.1;
-                    this.cursor.transform.position[0] += Math.round(xleft) - 0.5;
+                    this.cursor.transform.position[0] = this.dragStart[0];
+                    this.cursor.transform.position[2] = this.dragStart[1];
+
+                    var width = posX - this.dragStart[0];
+                    if(width>=0 && xleft>=0.5)width++;
+                    if(width<0 && xleft<=0.5)width--;
+
+                    var height = posY - this.dragStart[1];
+                    if(height>=0 && ytop>=0.5)height++;
+                    if(height<0 && ytop<=0.5)height--;
+
+                    var widthScaled = false;
+                    var heightScaled = false;
+
+                    if(this.dragState === this.DragColumn)
+                    {
+                        if(Math.abs(this.position[0] - this.dragStart[0]) > Math.abs(this.position[2] - this.dragStart[1]))
+                        {
+                            widthScaled = true;
+                            this.cursor.transform.scale[2] = 0.2;
+                            if(width<0)
+                            {
+                                if(width<-1)this.cursor.transform.position[0] -= 1;
+                                width += 1;
+                            }
+                        }
+                        else
+                        {
+                            heightScaled = true;
+                            this.cursor.transform.scale[0] = 0.2;
+                            if(height<0)
+                            {
+                                if(height<-1)this.cursor.transform.position[2] -= 1;
+                                height += 1;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(width===0) width = 1;
+                        if(height===0) height = 1;
+                    }
+
+                    if(this.dragState === this.DragBlock || this.dragState === this.DragWallX)
+                    {
+                        widthScaled = true;
+                    }
+
+                    if(this.dragState === this.DragBlock || this.dragState === this.DragWallY)
+                    {
+                        heightScaled = true;
+                    }
+
+                    if(widthScaled)
+                    {
+                        this.cursor.transform.scale[0] = Math.abs(width) + 0.2;
+                        this.cursor.transform.position[0] += width/2;
+                        if(width < 0)
+                        {
+                            this.cursor.transform.position[0] += 1;
+                        }
+                    }
+
+                    if(heightScaled)
+                    {
+                        this.cursor.transform.scale[2] = Math.abs(height) + 0.2;
+                        this.cursor.transform.position[2] += height/2;
+                        if(height < 0)
+                        {
+                            this.cursor.transform.position[2] += 1;
+                        }
+                    }
+
+                    if(input.mouse[0] === 0)
+                    {
+                        this.dragState = this.DragNone;
+                    }
                 }
                 else
                 {
-                    this.cursor.transform.scale[0] = 1.1;
-                }
+                    var state = this.DragBlock;
 
-                if(ytop < 0.2 || ybottom < 0.2)
-                {
-                    this.cursor.transform.scale[2] = 0.1;
-                    this.cursor.transform.position[2] += Math.round(ytop) - 0.5;
-                }
-                else
-                {
-                    this.cursor.transform.scale[2] = 1.1;
+                    this.cursor.transform.position[0] = posX + 0.5;
+                    this.cursor.transform.position[2] = posY + 0.5;
+
+                    this.dragStart[0] = posX;
+                    this.dragStart[1] = posY;
+
+                    if(xleft < 0.2 || xleft > 0.8)
+                    {
+                        this.cursor.transform.scale[0] = 0.2;
+                        this.cursor.transform.position[0] += Math.round(xleft) - 0.5;
+                        this.dragStart[0] += Math.round(xleft);
+                        state |= this.DragWallY;
+                        state &= ~this.DragBlock;
+                    }
+                    else
+                    {
+                        this.cursor.transform.scale[0] = 1.2;
+                    }
+
+                    if(ytop < 0.2 || ytop > 0.8)
+                    {
+                        this.cursor.transform.scale[2] = 0.2;
+                        this.cursor.transform.position[2] += Math.round(ytop) - 0.5;
+                        this.dragStart[1] += Math.round(ytop);
+                        state |= this.DragWallX;
+                        state &= ~this.DragBlock;
+                    }
+                    else
+                    {
+                        this.cursor.transform.scale[2] = 1.2;
+                    }
+
+                    if( input.mouse[0] )
+                    {
+                        this.dragState = state;
+                    }
                 }
 
                 this.cursor.transform.update();

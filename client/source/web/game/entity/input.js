@@ -11,6 +11,11 @@ function InputComponent() {
     this.pointer[0] = 0;
     this.pointer[1] = 0;
 
+    this.mouse = new Int8Array(3);
+    this.mouse[0] = 0;
+    this.mouse[1] = 0;
+    this.mouse[2] = 0;
+
     this.viewSensitivity = 1;
 
     this.dxp = 68;
@@ -18,10 +23,10 @@ function InputComponent() {
     this.dyp = 83;
     this.dyn = 87;
 
-    this.vxp = this.MouseXPositive;
-    this.vxn = this.MouseXNegative;
-    this.vyp = this.MouseYPositive;
-    this.vyn = this.MouseYNegative;
+    this.vxp = InputProcessor.MouseXPositive;
+    this.vxn = InputProcessor.MouseXNegative;
+    this.vyp = InputProcessor.MouseYPositive;
+    this.vyn = InputProcessor.MouseYNegative;
 
     this.driven = false;
 }
@@ -59,6 +64,11 @@ InputComponent.prototype.handle = function(code, d) {
         case this.vyn:
             this.view[1] -= d * this.viewSensitivity;
             break;
+
+        case InputProcessor.MouseButton1:
+            this.mouse[0] += d;
+            break;
+
     }
 };
 

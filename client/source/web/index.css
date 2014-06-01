@@ -5,6 +5,10 @@ html, body {
 
 body {
     overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -opera-user-select: none;
 }
 
 body > canvas {

@@ -86,9 +86,9 @@ InputProcessor.prototype.onMouseMove = function(event) {
 };
 
 //Constants
-InputProcessor.Mouse1 = 257;
-InputProcessor.Mouse2 = 259;
-InputProcessor.Mouse3 = 258;
+InputProcessor.MouseButton1 = 257;
+InputProcessor.MouseButton2 = 259;
+InputProcessor.MouseButton3 = 258;
 
 InputProcessor.MouseXPositive = 260;
 InputProcessor.MouseXNegative = 261;
