@@ -105,6 +105,9 @@ Orionark.Application.prototype = {
         window.asset = new AssetManager();
         window.ui = document.getElementById("ui");
 
+        document.documentElement.webkitRequestFullScreen();
+        document.documentElement.webkitRequestPointerLock();
+
         this.machine = new StateMachine();
         this.machine.push(new GameState());
 

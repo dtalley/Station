@@ -1,3 +1,5 @@
 function ProcessorPrototype() {}
 
-ProcessorPrototype.prototype.update = function(dt) {};
+ProcessorPrototype.prototype = new EventEmitter();
+
+ProcessorPrototype.prototype.start = function() {};

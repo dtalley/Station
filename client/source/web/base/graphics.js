@@ -498,8 +498,6 @@ GraphicsManager.prototype.finish = function(internal) {
         this.processingComplete = false;
         this.batchStarted = false;
 
-        console.log(this.callsReceived);
-        
         this.callsReceived = 0;
         this.callsSent = 0;
 

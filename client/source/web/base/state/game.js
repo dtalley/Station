@@ -8,10 +8,6 @@ function GameState() {
     this.fps = 0;
     this.fragment = null;
     this.holder = null;
-    this.fpsCounter = null;
-    this.fpsTotal = 0;
-    this.fpsCount = 0;
-    this.fpsList = new RingBuffer();
 }
 
 GameState.prototype = new StatePrototype();
@@ -20,10 +16,6 @@ GameState.prototype.subLoad = function() {
     this.fragment = document.createDocumentFragment();
     this.holder = document.createElement("div");
     this.holder.id = "game";
-
-    /*this.fpsCounter = document.createElement("div");
-    this.fpsCounter.classList.add("fps");
-    this.holder.appendChild(this.fpsCounter);*/
 
     this.fragment.appendChild(this.holder);
 
@@ -36,11 +28,13 @@ GameState.prototype.onGameProgress = function(loaded, total) {
 
 GameState.prototype.onGameLoaded = function() {
     this.gameAssetBundle = window.asset.createBundle();
-    this.gameAssetBundle.add("models/test/test.oml", true);
+    this.gameAssetBundle.add("models/test/cube.oml", true);
+    this.gameAssetBundle.add("models/test/arrow.oml", true);
     this.gameAssetBundle.add("materials/test/color.mtrl", true);
     this.gameAssetBundle.add("materials/test/red.mtrl", true);
     this.gameAssetBundle.add("materials/test/green.mtrl", true);
     this.gameAssetBundle.add("materials/test/blue.mtrl", true);
+    this.gameAssetBundle.add("materials/test/gray.mtrl", true);
     this.gameAssetBundle.load(this.onBundleLoaded, this.onBundleProgress);
 };
 
@@ -63,25 +57,21 @@ GameState.prototype.show = function() {
 
     window.ui.appendChild(this.fragment);
 
-    this.station = this.em.createEntity();
-    this.station.addComponent(TransformComponent);
-    this.station.addComponent(Interior.ContainerComponent).configure({
-
-    });
-
     this.player = this.em.createEntity();
     this.player.addComponent(TransformComponent).configure({
-        position: vec3.fromValues(0, 1, 0),
-        parent: this.station.getComponent(TransformComponent)
+        position: vec3.fromValues(0, 0.5, 0)
     });
     this.player.addComponent(InputComponent).configure({
         driven: true
     });
+    this.player.addComponent(ModelComponent).configure({
+        model: window.asset.get("models/test/arrow.oml"),
+        material: window.asset.get("materials/test/red.mtrl")
+    });
     this.player.addComponent(Interior.DynamicComponent).configure({
         character: true,
         player: true,
-        size: 1,
-        container: this.station.getComponent(Interior.ContainerComponent)
+        size: 1
     });
 
     this.camera = this.em.createEntity();
@@ -89,7 +79,7 @@ GameState.prototype.show = function() {
     this.camera.addComponent(TransformComponent).configure({
         parent: this.player.getComponent(TransformComponent),
         position: vec3.fromValues(0, 40, 20),
-        rotation: quat.rotateX(quat.create(), quat.zero, -55 * Math.PI / 180),
+        rotation: quat.rotateX(quat.create(), quat.zero, -63 * Math.PI / 180),
         watcher: this.camera.getComponent(CameraComponent)
     });
 };
@@ -109,18 +99,6 @@ GameState.prototype.simulate = function() {
 GameState.prototype.render = function() {
     if( this.visible )
     {
-        /*if( this.fpsList.span === this.fpsList.length && this.fpsList.length === 500 )
-        {
-            this.fpsTotal -= this.fpsList.shift();
-            this.fpsCount--;
-        }
-        this.fpsList.push(window.app.dt);
-        this.fpsTotal += window.app.dt;
-        this.fpsCount++;
-
-        this.fps = ( 1000.0 * this.fpsCount / this.fpsTotal ).toFixed(2);
-        this.fpsCounter.innerHTML = this.fps;*/
-
         this.renderer.start();
     }
 };

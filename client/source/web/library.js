@@ -128,11 +128,11 @@ RingBuffer.prototype.shift = function() {
     return obj;
 };
 
-function EventEmitter() {
-    this.events = {};
-}
+function EventEmitter() {}
 
 EventEmitter.prototype.on = function(event, callback, owner) {
+    if(!this.events) this.events = {};
+
     if( !this.events[event] ) 
     {
         this.events[event] = {
@@ -158,6 +158,8 @@ EventEmitter.prototype.on = function(event, callback, owner) {
 };
 
 EventEmitter.prototype.emit = function(event, data) {
+    if(!this.events) this.events = {};
+
     if( !this.events[event] ) return;
 
     this.events[event].listeners.forEach(function(listener){
@@ -167,6 +169,8 @@ EventEmitter.prototype.emit = function(event, data) {
 };
 
 EventEmitter.prototype.off = function(event, callback) {
+    if(!this.events) this.events = {};
+
     if( !this.events[event] ) return;
 
     var info = this.events[event];
@@ -184,15 +188,6 @@ EventEmitter.prototype.off = function(event, callback) {
         return false;
     });
 };
-
-var abp = ArrayBuffer.prototype;
-
-function FastArrayBuffer() {
-
-}
-
-FastArrayBuffer.prototype = Object.create(ArrayBuffer.prototype);
-
 
 ArrayBuffer.prototype.copy = function(target, targetOffset, sourceOffset)
 {

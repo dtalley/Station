@@ -10,6 +10,10 @@ function InputProcessor() {
     for( var i = 0; i < 268; i++, this.keys[i] = 0 );
 
     this.stack = InputComponent.prototype.stack;
+    
+    this.pointer = vec2.fromValues(0, 0);
+    this.lastPointer = vec2.fromValues(0, 0);
+    this.movement = vec2.fromValues(0, 0);
 
     window.onkeydown = this.onKeyDown;
     window.onkeyup = this.onKeyUp;
@@ -19,12 +23,42 @@ function InputProcessor() {
     window.oncontextmenu = this.onContextMenu;
 
     window.onmousemove = this.onMouseMove;
+
+    this.skipMovement = 0;
 }
 
 InputProcessor.prototype = new ProcessorPrototype();
 
 InputProcessor.prototype.start = function() {
+    var count = this.stack.length;
+    for( var i = 0; i < count; i++ )
+    {
+        var c = this.stack[i];
+        if(c.entity && c.driven)
+        {
+            if( !this.skipMovement )
+            {
+                c.handle(InputProcessor.MouseX, this.movement[0]);
+                c.handle(InputProcessor.MouseY, this.movement[1]);
+            }
+            else
+            {
+                this.skipMovement--;
+            }
 
+            if( !this.mouseLocked )
+            {
+                c.pointer[0] = ( ( this.pointer[0] << 1 ) / window.innerWidth ) - 1;
+                c.pointer[1] = 1 - ( ( this.pointer[1] << 1 ) / window.innerHeight );
+            }
+        }
+    }
+
+    this.movement[0] = 0;
+    this.movement[1] = 0;
+
+    this.lastPointer[0] = this.pointer[0];
+    this.lastPointer[1] = this.pointer[1];
 };
 
 InputProcessor.prototype.set = function(code) {
@@ -68,11 +102,27 @@ InputProcessor.prototype.onContextMenu = function(event) {
 };
 
 InputProcessor.prototype.onMouseDown = function(event) {
+    if(event.which === 3)
+    {
+        document.documentElement.webkitRequestPointerLock();
+        this.skipMovement = 3;
+    }
+
     this.set(256+event.which);
+
+    event.preventDefault();
 };
 
 InputProcessor.prototype.onMouseUp = function(event) {
+    if(event.which === 3)
+    {
+        document.webkitExitPointerLock();
+        this.skipMovement = 3;
+    }
+
     this.unset(256+event.which);
+
+    event.preventDefault();
 };
 
 InputProcessor.prototype.isActive = function(code) {
@@ -81,16 +131,13 @@ InputProcessor.prototype.isActive = function(code) {
 };
 
 InputProcessor.prototype.onMouseMove = function(event) {
-    var count = this.stack.length;
-    for( var i = 0; i < count; i++ )
-    {
-        var c = this.stack[i];
-        if(c.entity && c.driven)
-        {
-            c.pointer[0] = ( ( event.x << 1 ) / window.innerWidth ) - 1;
-            c.pointer[1] = 1 - ( ( event.y << 1 ) / window.innerHeight );
-        }
-    }
+    console.log(event.movementX);
+    this.movement[0] += event.movementX;
+    this.movement[1] += event.movementY;
+
+    this.pointer[0] = event.x;
+    this.pointer[1] = event.y;
+
     event.preventDefault();
 };
 
@@ -99,10 +146,8 @@ InputProcessor.MouseButton1 = 257;
 InputProcessor.MouseButton2 = 259;
 InputProcessor.MouseButton3 = 258;
 
-InputProcessor.MouseXPositive = 260;
-InputProcessor.MouseXNegative = 261;
-InputProcessor.MouseYPositive = 262;
-InputProcessor.MouseYNegative = 263;
+InputProcessor.MouseX = 260;
+InputProcessor.MouseY = 261;
 
 InputProcessor.JoystickXPositive = 264;
 InputProcessor.JoystickXNegative = 265;

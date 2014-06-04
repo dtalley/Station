@@ -31,8 +31,21 @@ var sourcePath = usePath + "source/node";
 
 var extra = "";
 
-module.exports.build = function(extra) {
-    extra = extra;
+function ensurePath(root, file) {
+    var split = file.split(path.sep);
+    if(split.length>1)
+    {
+        var build = "";
+        while(split.length > 1)
+        {
+            build += path.sep + split.shift();
+            try{fs.mkdirSync(root + build);}catch(e){}
+        }
+    }
+}
+
+module.exports.build = function(ext) {
+    extra = ext;
     emgen();
 };
 
@@ -40,7 +53,7 @@ function emgen() {
     exec("emgen", function(err, stdout, stderr){
         if(err)
         {
-            console.log(stderr);
+            console.log("Error", stderr);
             return;
         }
 
@@ -53,7 +66,7 @@ function condense() {
     exec("condense", function(err, stdout, stderr){
         if(err)
         {
-            console.log(stderr);
+            console.log("Error", stderr);
             return;
         }
 
@@ -70,8 +83,7 @@ function condense() {
 }
 
 function build_atom() {
-    return;
-    console.log("Building node-webkit client...");
+    console.log("Building atom-shell client...");
     walk(sourcePath, function(err, files){
         if(err)
         {
@@ -85,53 +97,33 @@ function build_atom() {
             usePlatform = "win32";
         }
 
-        var distPath = usePath + "dist/" + usePlatform + "-atom/";
+        var distPath = usePath + "dist" + path.sep + usePlatform + "-atom" + path.sep;
         try{fs.mkdirSync(distPath);}catch(e){}
-        try{fs.mkdirSync(distPath + "resources/");}catch(e){}
-        try{fs.mkdirSync(distPath + "resources/app/");}catch(e){}
+        var resourcePath = distPath + path.sep + "resources" + path.sep + "app";
+        ensurePath(distPath, resourcePath + path.sep + "null");
 
         files.forEach(function(file){
             if( file.substr(-9, 9) === "gitignore" )
             {
                 return;
             }
-            
-            var data = fs.readFileSync(file);
 
             file = file.replace(sourcePath + path.sep, "");
-            if( path.sep === "\\" )
-            {
-                file = file.replace(/\\/g, "/");
-            }
-            else
-            {
-                file = file.replace(/\//g, "/");
-            }
-            
-            var ab = new ArrayBuffer(data.length);
-            var view = new Uint8Array(ab);
-            for (var i = 0; i < data.length; ++i) {
-                view[i] = data[i];
-            }
 
-            fs.createReadStream(file).pipe(fs.createWriteStream(distPath + file));
+            ensurePath(resourcePath, file);
+            fs.createReadStream(sourcePath + path.sep + file).pipe(fs.createWriteStream(resourcePath + path.sep + file));
         });
 
-        if( process.platform === "win32" )
-        {
-            /*var atomFiles = [
-                "nw.exe",
-                "nw.pak",
-                "icudt.dll",
-                "ffmpegsumo.dll",
-                "libEGL.dll",
-                "libGLESv2.dll"
-            ];
+        var shellPath = usePath + path.sep + "atom-shell";
 
-            atomFiles.forEach(function(file){
-                fs.createReadStream(usePath + "atom-shell/" + usePlatform + "/" + file).pipe(fs.createWriteStream(distPath + file));
-            });*/
-        }
+        walk(shellPath, function(err, files){
+            files.forEach(function(file){
+                file = file.replace(shellPath + path.sep, "");
+
+                ensurePath(distPath, file);
+                fs.createReadStream(shellPath + path.sep + file).pipe(fs.createWriteStream(distPath + file));
+            });
+        });
 
         console.log("Client built.");
     });

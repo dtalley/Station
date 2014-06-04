@@ -1,22 +1,8 @@
 {
-  "node-main": "client.js",
-  "main": "gen/index.html",
+  "main": "client.js",
 
   "name": "Station Twelve",
   "description": "Station Twelve",
 
-  "version": "0.0.1",
-
-  "window": {
-    "title": "Station",
-
-    "frame": false,
-
-    "width": 1280,
-    "height": 720
-  },
-
-  "webkit": {
-    
-  }
+  "version": "0.0.1"
 }
