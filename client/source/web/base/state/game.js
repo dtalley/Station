@@ -46,7 +46,7 @@ GameState.prototype.onBundleLoaded = function() {
     this.em = new EntityManager();
 
     this.renderer = new RenderProcessor();
-    this.interior = new InteriorProcessor(this.em);
+    this.dynamic = new DynamicProcessor(this.em);
     this.input = new InputProcessor();
     
     this.machine.onStateLoaded(this);
@@ -68,7 +68,7 @@ GameState.prototype.show = function() {
         model: window.asset.get("models/test/arrow.oml"),
         material: window.asset.get("materials/test/red.mtrl")
     });
-    this.player.addComponent(Interior.DynamicComponent).configure({
+    this.player.addComponent(DynamicComponent).configure({
         character: true,
         player: true,
         size: 1
@@ -91,15 +91,15 @@ GameState.prototype.subDestroy = function() {
 GameState.prototype.simulate = function() {
     if( this.visible )
     {
-        this.input.start();
-        this.interior.start();
+        this.input.update();
+        this.dynamic.update();
     }
 };
 
 GameState.prototype.render = function() {
     if( this.visible )
     {
-        this.renderer.start();
+        this.renderer.update();
     }
 };
 

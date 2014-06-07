@@ -101,11 +101,11 @@
 
         {
             "input": [
-                "client/source/web/game/entity/interior/container.js",
-                "client/source/web/game/entity/interior/dynamic.js",
+                "client/source/web/game/entity/container.js",
+                "client/source/web/game/entity/dynamic.js",
                 "client/source/web/game/entity/input.js",
 
-                "client/source/web/game/system/interior.js",
+                "client/source/web/game/system/dynamic.js",
                 "client/source/web/game/system/input.js"
             ],
 

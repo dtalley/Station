@@ -29,7 +29,7 @@ function InputProcessor() {
 
 InputProcessor.prototype = new ProcessorPrototype();
 
-InputProcessor.prototype.start = function() {
+InputProcessor.prototype.update = function() {
     var count = this.stack.length;
     for( var i = 0; i < count; i++ )
     {
@@ -88,6 +88,7 @@ InputProcessor.prototype.unset = function(code) {
 };
 
 InputProcessor.prototype.onKeyDown = function(event) {
+    //console.log(event.keyCode);
     this.set(event.keyCode);
     event.preventDefault();
 };
@@ -131,7 +132,6 @@ InputProcessor.prototype.isActive = function(code) {
 };
 
 InputProcessor.prototype.onMouseMove = function(event) {
-    console.log(event.movementX);
     this.movement[0] += event.movementX;
     this.movement[1] += event.movementY;
 

@@ -1,6 +1,6 @@
 function TransformComponent() {
     this.position = vec3.create();
-    this.scale = vec3.set(vec3.create(), 1, 1, 1);
+    this.scale = vec3.fromValues(1, 1, 1);
     this.rotation = quat.identity(quat.create());
 
     this.parent = null;
@@ -43,10 +43,14 @@ TransformComponent.prototype.removeChild = function(child) {
 
     this.indices.push(child.index);
     this.children[child.index] = null;
+    child.parent = null;
+    child.update();
 };
 
 TransformComponent.prototype.setParent = function(parent) {
-    parent.addChild(this);
+    if(this.parent) this.parent.removeChild(this);
+
+    if( parent ) parent.addChild(this);
 };
 
 TransformComponent.prototype.onAttached = function() {

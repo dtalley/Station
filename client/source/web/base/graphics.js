@@ -151,14 +151,14 @@ GraphicsManager.prototype.useProgram = function(program) {
         }
     }
 
-    this.ps = true;
-
     if( !program )
     {
         this.program = null;
         this.gl.useProgram(null);
         return;
     }
+
+    this.ps = true;
 
     this.program = program;
     this.gl.useProgram(this.program);
@@ -257,20 +257,14 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer)
         this.vb = vertexBuffer;
     }
 
-    if( this.ps )
+    var count = this.program.attributes.length;
+    for( var i = 0; i < count; i++ )
     {
-        var count = this.program.attributes.length;
-        for( var i = 0; i < count; i++ )
-        {
-            var match = this.program.attributes[i];
-            var attribute = vertexBuffer[match.key];
-            
-            if(!attribute) continue;
-            this.gl.enableVertexAttribArray(match.id);
-            this.gl.vertexAttribPointer(match.id, attribute.count, attribute.type, attribute.normalized, vertexBuffer.stride, attribute.offset);
-        }
-
-        this.ps = false;
+        var match = this.program.attributes[i];
+        var attribute = vertexBuffer[match.key];
+        if(!attribute) continue;
+        this.gl.enableVertexAttribArray(match.id);
+        this.gl.vertexAttribPointer(match.id, attribute.count, attribute.type, attribute.normalized, vertexBuffer.stride, attribute.offset);
     }
 
     if( indexBuffer && this.ib !== indexBuffer )
@@ -287,8 +281,6 @@ GraphicsManager.prototype.drawVertexBuffer = function(vertexBuffer, indexBuffer)
     {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, vertexBuffer.count);
     }
-
-    this.marked = true;
 };
 
 GraphicsManager.prototype.resize = function(width, height) {

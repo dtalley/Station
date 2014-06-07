@@ -9,6 +9,13 @@ function InputComponent() {
     this.mouse[1] = 0;
     this.mouse[2] = 0;
 
+    this.actions = new Int8Array(5);
+    this.actions[0] = 0;
+    this.actions[1] = 0;
+    this.actions[2] = 0;
+    this.actions[3] = 0;
+    this.actions[4] = 0;
+
     this.viewSensitivity = 0.005;
 
     this.dxp = 68;
@@ -21,6 +28,8 @@ function InputComponent() {
     this.vx = InputProcessor.MouseX;
     this.vy = InputProcessor.MouseY;
     this.vz = InputProcessor.MouseZ;
+
+    this.use = 69;
 
     this.driven = false;
 }
@@ -61,6 +70,10 @@ InputComponent.prototype.handle = function(code, d) {
             break;
         case InputProcessor.MouseButton3:
             this.mouse[2] += d;
+            break;
+
+        case this.use:
+            this.actions[0] += d;
             break;
     }
 };

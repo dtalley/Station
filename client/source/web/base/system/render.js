@@ -4,7 +4,7 @@ function RenderProcessor() {
 
 RenderProcessor.prototype = new ProcessorPrototype();
 
-RenderProcessor.prototype.start = function() {
+RenderProcessor.prototype.update = function() {
     if(!window.gr.enabled)return;
 
     var modelCount = ModelComponent.prototype.stack.length;
@@ -31,7 +31,7 @@ RenderProcessor.prototype.start = function() {
     for( var i = 0; i < modelCount; i++ )
     {
         var model = ModelComponent.prototype.stack[i];
-        if( model.entity && model.material && model.model )
+        if( model.entity && model.material && model.model && model.visible )
         {
             var transform = model.entity.transform;
             var material = model.material;

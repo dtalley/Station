@@ -43,7 +43,7 @@ EditorProcessor.prototype.EditDuct = 2;
 EditorProcessor.prototype.EditFloor = 3;
 EditorProcessor.prototype.EditProp = 4;
 
-EditorProcessor.prototype.start = function() {
+EditorProcessor.prototype.update = function() {
     var dynamic;
     count = this.dynamics.length;
     for( i = 0; i < count; i++ )
