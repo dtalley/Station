@@ -128,33 +128,76 @@ RingBuffer.prototype.shift = function() {
     return obj;
 };
 
-function EventEmitter() {}
+function ObjectRegistry() {
+    this.array = [];
+    this.length = 0;
+}
 
-EventEmitter.prototype.on = function(event, callback, owner) {
-    if(!this.events) this.events = {};
-
-    if( !this.events[event] ) 
+ObjectRegistry.prototype.add = function(object) {
+    if( this.length === this.array.length )
     {
-        this.events[event] = {
-            indices:new RingBuffer(10), 
-            listeners:[]
-        };
-    }
-
-    var registry = {
-        cb: callback,
-        o: owner
-    };
-    var info = this.events[event];
-
-    if( info.indices.span > 0 )
-    {
-        info.listeners[info.indices.shift()] = registry;
+        this.array.push(object);
     }
     else
     {
-        info.listeners.push(registry);
+        this.array[this.length] = object;
     }
+    this.length++;
+};
+
+ObjectRegistry.prototype.remove = function(object) {
+    var index = this.array.indexOf(object);
+
+    if( index >= 0 )
+    {
+        this.array[index] = this.array[this.length-1];
+        this.length--;
+    }
+};
+
+ObjectRegistry.prototype.clear = function() {
+    this.length = 0;
+};
+
+function EventManager() {
+    this.registries = new StackPool();
+}
+
+function EventEmitter() {
+    this.events = {};
+}
+
+EventEmitter.prototype = new EventManager();
+
+EventEmitter.prototype.EventRegistry = function(callback, owner) {
+    this.cb = callback;
+    this.o = owner;
+};
+
+EventEmitter.prototype.getRegistry = function(callback, owner) {
+    if( this.registries.top > 0 )
+    {
+        var registry = this.registries.pop();
+        registry.cb = callback;
+        registry.o = owner;
+        return registory;
+    }
+    else
+    {
+        return new this.EventRegistry(callback, owner);
+    }
+};
+
+EventEmitter.prototype.on = function(event, callback, owner) {
+    if( !this.events[event] ) 
+    {
+        this.events[event] = {
+            listeners:new ObjectRegistry()
+        };
+    }
+
+    var registry = this.getRegistry(callback, owner);
+    this.events[event].listeners.add(registry);
 };
 
 EventEmitter.prototype.emit = function(event, data) {
@@ -162,31 +205,30 @@ EventEmitter.prototype.emit = function(event, data) {
 
     if( !this.events[event] ) return;
 
-    this.events[event].listeners.forEach(function(listener){
-        if( !listener ) return;
+    var listeners = this.events[event].listeners;
+    var count = listeners.length;
+    for( var i = 0; i < count; i++ )
+    {
+        var listener = listeners.array[i];
         listener.cb.call(listener.o, data);
-    });
+    }
 };
 
-EventEmitter.prototype.off = function(event, callback) {
-    if(!this.events) this.events = {};
-
+EventEmitter.prototype.off = function(event, callbackOrOwner) {
     if( !this.events[event] ) return;
 
-    var info = this.events[event];
+    var listeners = this.events[event].listeners;
 
-    info.listeners.some(function(listener, i){
-        if( !listener ) return false;
-
-        if( listener.o === callback || listener.cb === callback )
+    var count = listeners.length;
+    for( var i = 0; i < count; i++ )
+    {
+        var listener = listeners.array[i];
+        if( listener.cb === callbackOrOwner || listener.o === callbackOrOwner )
         {
-            info.indices.push(i);
-            info.listeners[i] = null;
-            return true;
+            this.registries.push(listener);
+            listeners.remove(listener);
         }
-
-        return false;
-    });
+    }
 };
 
 ArrayBuffer.prototype.copy = function(target, targetOffset, sourceOffset)

@@ -1,4 +1,6 @@
 function TransformComponent() {
+    ComponentPrototype.call(this);
+    
     this.position = vec3.create();
     this.scale = vec3.fromValues(1, 1, 1);
     this.rotation = quat.identity(quat.create());
@@ -15,7 +17,7 @@ function TransformComponent() {
     this.storedMatrix = -1;
 }
 
-TransformComponent.prototype = new ComponentPrototype(TransformComponent);
+TransformComponent.prototype = new ComponentPool(TransformComponent);
 
 TransformComponent.prototype.addChild = function(child) {
     if(child.parent===this) return;
@@ -97,4 +99,12 @@ TransformComponent.prototype.update = function() {
     {
         this.watcher.update();
     }
+};
+
+TransformComponent.prototype.rotateUnitVector4 = function(vector) {
+    vector[0] = 0;
+    vector[1] = 0;
+    vector[2] = 1;
+    vector[3] = 1;
+    vec4.transformQuat(vector, vector, this.rotation);
 };

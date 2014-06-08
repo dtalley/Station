@@ -1,14 +1,16 @@
-ContainerComponent = function() {
-   this.loaded = false;
+ContainerComponent = function(flags) {
+    ComponentPrototype.call(this, flags);
 
-   var size = this.size = 16;
-   this.shift = 0;
-   while((size >>>= 1) !== 0) this.shift++;
-   this.width = 1;
-   this.height = 1;
+    this.loaded = false;
+
+    var size = this.size = 16;
+    this.shift = 0;
+    while((size >>>= 1) !== 0) this.shift++;
+    this.width = 1;
+    this.height = 1;
 };
 
-ContainerComponent.prototype = new ComponentPrototype(ContainerComponent);
+ContainerComponent.prototype = new ComponentPool(ContainerComponent);
 
 ContainerComponent.prototype.storeChunk = function(entity) {
 

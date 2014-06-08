@@ -1,20 +1,21 @@
 function Entity(id) {
     this.id = id;
     this.components = [];
-    this.indices = new RingBuffer(10);
+    this.indices = new RingBuffer();
 
     //Common components
     this.transform = null;
     this.camera = null;
     this.model = null;
     this.input = null;
+    this.collider = null;
 }
 
-Entity.prototype.addComponent = function(component) {
+Entity.prototype.addComponent = function(component, flags) {
     var instance = component;
     if( typeof component === "function" )
     {
-        instance = component.prototype.create().attach(this);
+        instance = component.prototype.create(flags).attach(this);
     }
 
     if( !instance )
@@ -92,27 +93,10 @@ EntityManager.prototype.releaseEntity = function(entity) {
     this.pool.push(entity);
 };
 
-function ComponentPrototype(constructor) {
-    this.entity = null;
-    this.pool = [];
-    this.stack = [];
-    this.constructor = constructor;
-    this.index = 0;
+function ComponentPrototype() {
     this.id = 0;
+    this.index = 0;
 }
-
-ComponentPrototype.prototype.type = "none";
-
-ComponentPrototype.prototype.create = function() {
-    if( this.pool.length > 0 )
-    {
-        return this.pool.pop();
-    }
-
-    this.stack.push(new this.constructor());
-    this.stack[this.stack.length-1].id = this.stack.length - 1;
-    return this.stack[this.stack.length-1];
-};
 
 ComponentPrototype.prototype.attach = function(entity) {
     this.entity = entity;
@@ -130,13 +114,35 @@ ComponentPrototype.prototype.detach = function() {
 };
 ComponentPrototype.prototype.onDetached = function(){};
 
-ComponentPrototype.prototype.release = function() {
+ComponentPrototype.prototype.configure = function(options){
+    _.extend(this, options);
+    return this;
+};
+
+function ComponentPool(constructor) {
+    this.entity = null;
+    this.pool = [];
+    this.stack = [];
+    this.constructor = constructor;
+}
+
+ComponentPool.prototype = new ComponentPrototype();
+
+ComponentPool.prototype.release = function() {
     this.pool.push(this);
 
     return this;
 };
 
-ComponentPrototype.prototype.configure = function(options){
-    _.extend(this, options);
-    return this;
+ComponentPool.prototype.create = function(flags) {
+    if( this.pool.length > 0 )
+    {
+        var component = this.pool.pop();
+        component.flags = flags;
+        return component;
+    }
+
+    this.stack.push(new this.constructor(flags));
+    this.stack[this.stack.length-1].id = this.stack.length - 1;
+    return this.stack[this.stack.length-1];
 };

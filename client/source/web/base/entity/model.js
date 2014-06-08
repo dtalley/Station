@@ -1,11 +1,13 @@
 function ModelComponent() {
+    ComponentPrototype.call(this);
+    
     this.model = null;
     this.material = null;
 
     this.visible = true;
 }
 
-ModelComponent.prototype = new ComponentPrototype(ModelComponent);
+ModelComponent.prototype = new ComponentPool(ModelComponent);
 
 ModelComponent.prototype.onAttached = function() {
     this.entity.model = this;

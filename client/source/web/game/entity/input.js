@@ -1,4 +1,6 @@
-function InputComponent() {
+function InputComponent(flags) {
+    ComponentPrototype.call(this, flags);
+    
     this.direction = vec4.fromValues(0, 0, 0, 1);
 
     this.view = vec2.fromValues(0, 0);
@@ -25,16 +27,16 @@ function InputComponent() {
     this.dzp = 83;
     this.dzn = 87;
 
-    this.vx = InputProcessor.MouseX;
-    this.vy = InputProcessor.MouseY;
-    this.vz = InputProcessor.MouseZ;
+    this.vx = InputSystem.MouseX;
+    this.vy = InputSystem.MouseY;
+    this.vz = InputSystem.MouseZ;
 
     this.use = 69;
 
     this.driven = false;
 }
 
-InputComponent.prototype = new ComponentPrototype(InputComponent);
+InputComponent.prototype = new ComponentPool(InputComponent);
 
 InputComponent.prototype.onAttached = function() {
     this.entity.input = this;
@@ -62,13 +64,13 @@ InputComponent.prototype.handle = function(code, d) {
             this.view[1] = d * this.viewSensitivity;
             break;
 
-        case InputProcessor.MouseButton1:
+        case InputSystem.MouseButton1:
             this.mouse[0] += d;
             break;
-        case InputProcessor.MouseButton2:
+        case InputSystem.MouseButton2:
             this.mouse[1] += d;
             break;
-        case InputProcessor.MouseButton3:
+        case InputSystem.MouseButton3:
             this.mouse[2] += d;
             break;
 

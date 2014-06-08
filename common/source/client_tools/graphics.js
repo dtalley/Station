@@ -38,7 +38,7 @@ function GraphicsManager(finishCallback) {
     this.gl.enable(this.gl.BLEND);
     //this.gl.enable(this.gl.CULL_FACE);
     //this.gl.cullFace(this.gl.BACK);
-    this.gl.depthFunc(this.gl.ALWAYS);
+    this.gl.depthFunc(this.gl.LEQUAL);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
     this.batch = new window.Worker("batch.js");
@@ -380,8 +380,15 @@ GraphicsManager.prototype.process = function() {
 GraphicsManager.prototype.startCommand = function(type) {
     if(!this.writing)
     {
-        if(this.commandPool.top>0) this.writing = this.commandPool.pop().imbue();
-        else this.writing = new ArrayBuffer(1024 * 16).imbue();
+        if(this.commandPool.top>0)
+        {
+            this.writing = this.commandPool.pop().imbue();
+        }
+        else 
+        {
+            this.writing = new ArrayBuffer(1024 * 16).imbue();
+            console.log("what");
+        }
         this.writeOffset = 0;
     }
     else if( this.writeOffset > this.commandThreshold )

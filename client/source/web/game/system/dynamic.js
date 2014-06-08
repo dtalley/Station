@@ -1,11 +1,27 @@
-function DynamicProcessor(em) {
-    this.em = em;
+function DynamicSystem(em, sp) {
+    SystemPrototype.call(this);
 
-    this.dynamics = DynamicComponent.prototype.stack;
+    this.em = em; //Entity Manager
+    this.sp = sp; //Spatial partitioner
+
+    this.actors = new ActorProcessor(this.sp);
+    this.containers = new ContainerProcessor(this.sp);
+    this.physics = new PhysicsProcessor(this.sp);
 
     this.movement = vec4.create();
     this.result = vec4.create();
     this.rq = quat.create();
+
+    this.player = this.createActor(true);
+
+    this.camera = this.em.createEntity();
+    this.camera.addComponent(CameraComponent).activate();
+    this.camera.addComponent(TransformComponent).configure({
+        parent: this.player.getComponent(TransformComponent),
+        position: vec3.fromValues(0, 40, 20),
+        rotation: quat.rotateX(quat.create(), quat.zero, -63 * Math.PI / 180),
+        watcher: this.camera.getComponent(CameraComponent)
+    });
 
     this.createGrid();
 
@@ -16,6 +32,9 @@ function DynamicProcessor(em) {
             position: vec3.fromValues(4.5 + i, 0.5, 4.5),
             scale: vec3.fromValues(0.5, 0.5, 0.5)
         });
+        crate.addComponent(ColliderComponent).configure({
+            shape: new ColliderComponent.Box(-0.5, 0.5, -0.5, 0.5 -0.5, 0.5)
+        });
         crate.addComponent(ModelComponent).configure({
             model: window.asset.get("models/test/cube.oml"),
             material: window.asset.get("materials/test/gray.mtrl")
@@ -23,148 +42,55 @@ function DynamicProcessor(em) {
         crate.addComponent(DynamicComponent).configure({
             deployable: true
         });
+
+        this.physics.addComponent(crate.getComponent(ColliderComponent));
     }
+
+    this.cursor = this.em.createEntity();
+    this.cursor.addComponent(TransformComponent).configure({
+        position: vec3.fromValues(0.5, 0.5, 0.5)
+    });
+    this.cursor.addComponent(ModelComponent).configure({
+        model: window.asset.get("models/test/cube.oml"),
+        material: window.asset.get("materials/test/green.mtrl"),
+        visible: false
+    });
 }
 
-DynamicProcessor.prototype = new ProcessorPrototype();
+DynamicSystem.prototype = new SystemPrototype();
 
-DynamicProcessor.prototype.update = function() {
-    var dynamic;
-    count = this.dynamics.length;
-    for( i = 0; i < count; i++ )
-    {
-        dynamic = this.dynamics[i];
-        if(!dynamic.entity) continue;
+DynamicSystem.prototype.createActor = function(isPlayer) {
+    var actor = this.em.createEntity();
+    actor.addComponent(TransformComponent).configure({
+        position: vec3.fromValues(0, 0.5, 0)
+    });
+    var collider = actor.addComponent(ColliderComponent).configure({
+        shape: new ColliderComponent.Box(-0.5, 0.5, -0.5, 0.5 -0.5, 0.5)
+    });
+    actor.addComponent(InputComponent).configure({
+        driven: !!isPlayer
+    });
+    actor.addComponent(ModelComponent).configure({
+        model: window.asset.get("models/test/arrow.oml"),
+        material: window.asset.get("materials/test/red.mtrl")
+    });
+    var dynamic = actor.addComponent(DynamicComponent).configure({
+        player: !!isPlayer
+    });
 
-        if(dynamic.character)
-        {
-            this.updateCharacter(dynamic);
-        }
-    }
+    this.actors.addComponent(dynamic);
+    this.physics.addComponent(collider);
+
+    return actor;
 };
 
-DynamicProcessor.prototype.updateCharacter = function(dynamic) {
-    var input = dynamic.entity.input;
-    var updated = false;
-    
-    if(input.mouse[1])
-    {
-        quat.rotateY(dynamic.entity.transform.rotation, dynamic.entity.transform.rotation, input.view[0] * -1);
-        updated = true;
-    }
-
-    if(input.direction[0] !== 0 || input.direction[2] !== 0)
-    {
-        vec4.transformQuat(this.movement, input.direction, dynamic.entity.transform.rotation);
-        vec4.scale(this.movement, this.movement, window.app.dt * 0.005);
-        vec4.add(dynamic.entity.transform.position, dynamic.entity.transform.position, this.movement);
-        updated = true;
-    }
-
-    if(updated) dynamic.entity.transform.update();
-
-    if( dynamic.player )
-    {
-        this.updatePlayer(dynamic);
-    }
+DynamicSystem.prototype.update = function() {
+    this.physics.process();
+    this.actors.process();
+    this.containers.process();
 };
 
-DynamicProcessor.prototype.updatePlayer = function(player) {
-    this.movement[0] = 0;
-    this.movement[1] = 0;
-    this.movement[2] = 1;
-    this.movement[3] = 1;
-
-    vec4.transformQuat(this.movement, this.movement, player.entity.transform.rotation);
-
-    if( player.using )
-    {
-        if(!player.entity.input.actions[0])
-        {
-            player.using = false;
-        }
-
-        return;
-    }
-    if( player.holding )
-    {
-        if( player.entity.input.actions[0] )
-        {
-            player.holding.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-            vec4.transformQuat(player.holding.entity.transform.position, player.holding.entity.transform.position, player.entity.transform.rotation);
-            vec3.add(player.holding.entity.transform.position, player.entity.transform.position, player.holding.entity.transform.position);
-            quat.multiply(player.holding.entity.transform.rotation, player.entity.transform.rotation, player.holding.entity.transform.rotation);
-            player.entity.transform.removeChild(player.holding.entity.transform);
-            player.holding = null;
-            player.using = true;
-        }
-        else
-        {
-            return;
-        }
-    }
-
-    var count = this.dynamics.length;
-    for( var i = 0; i < count; i++ )
-    {
-        var dynamic = this.dynamics[i];
-
-        if( dynamic.deployable )
-        {
-            var distance = vec3.distance(dynamic.entity.transform.position, player.entity.transform.position);
-            if( distance < 1 )
-            {
-                vec3.subtract(this.result, dynamic.entity.transform.position, player.entity.transform.position);
-                var dot = vec3.dot(this.result, this.movement);
-                
-                if( dot < 0 && ( 0 - dot ) > ( distance * 0.9 ) )
-                {
-                    if(player.targeting === dynamic)
-                    {
-                        if(player.entity.input.actions[0])
-                        {
-                            player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-                            player.targeting = null;       
-
-                            player.holding = dynamic;
-                            player.holding.entity.model.material = window.asset.get("materials/test/blue.mtrl");
-
-                            quat.invert(this.rq, player.entity.transform.rotation);
-                            vec4.transformQuat(this.result, this.result, this.rq);
-                            quat.multiply(dynamic.entity.transform.rotation, this.rq, dynamic.entity.transform.rotation);
-                            dynamic.entity.transform.position[0] = this.result[0];
-                            dynamic.entity.transform.position[1] = this.result[1];
-                            dynamic.entity.transform.position[2] = this.result[2];
-                            player.entity.transform.addChild(dynamic.entity.transform);
-
-                            console.log(dynamic.entity.transform.position);
-
-                            player.using = true;
-                        }
-                        return;
-                    }
-                    else if(player.targeting)
-                    {
-                        player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-                        player.targeting = null;
-                    }
-
-                    player.targeting = dynamic;
-                    player.targeting.entity.model.material = window.asset.get("materials/test/green.mtrl");
-                    return;
-                }
-            }
-        }
-    }
-
-    if(player.targeting)
-    {
-        player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-        player.targeting = null;
-    }
-};
-
-DynamicProcessor.prototype.createGrid = function() {
+DynamicSystem.prototype.createGrid = function() {
     this.grid = this.em.createEntity();
     this.grid.addComponent(TransformComponent).configure({});
     

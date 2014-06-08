@@ -1,4 +1,6 @@
-function InputProcessor() {
+function InputSystem() {
+    SystemPrototype.call(this);
+    
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
@@ -27,9 +29,9 @@ function InputProcessor() {
     this.skipMovement = 0;
 }
 
-InputProcessor.prototype = new ProcessorPrototype();
+InputSystem.prototype = new SystemPrototype();
 
-InputProcessor.prototype.update = function() {
+InputSystem.prototype.update = function() {
     var count = this.stack.length;
     for( var i = 0; i < count; i++ )
     {
@@ -38,8 +40,8 @@ InputProcessor.prototype.update = function() {
         {
             if( !this.skipMovement )
             {
-                c.handle(InputProcessor.MouseX, this.movement[0]);
-                c.handle(InputProcessor.MouseY, this.movement[1]);
+                c.handle(InputSystem.MouseX, this.movement[0]);
+                c.handle(InputSystem.MouseY, this.movement[1]);
             }
             else
             {
@@ -61,7 +63,7 @@ InputProcessor.prototype.update = function() {
     this.lastPointer[1] = this.pointer[1];
 };
 
-InputProcessor.prototype.set = function(code) {
+InputSystem.prototype.set = function(code) {
     if(this.keys[code])return;
 
     this.keys[code] = 1;
@@ -74,7 +76,7 @@ InputProcessor.prototype.set = function(code) {
     }
 };
 
-InputProcessor.prototype.unset = function(code) {
+InputSystem.prototype.unset = function(code) {
     if(!this.keys[code])return;
 
     this.keys[code] = 0;
@@ -87,22 +89,22 @@ InputProcessor.prototype.unset = function(code) {
     }
 };
 
-InputProcessor.prototype.onKeyDown = function(event) {
+InputSystem.prototype.onKeyDown = function(event) {
     //console.log(event.keyCode);
     this.set(event.keyCode);
     event.preventDefault();
 };
 
-InputProcessor.prototype.onKeyUp = function(event) {
+InputSystem.prototype.onKeyUp = function(event) {
     this.unset(event.keyCode);
     event.preventDefault();
 };
 
-InputProcessor.prototype.onContextMenu = function(event) {
+InputSystem.prototype.onContextMenu = function(event) {
     event.preventDefault();
 };
 
-InputProcessor.prototype.onMouseDown = function(event) {
+InputSystem.prototype.onMouseDown = function(event) {
     if(event.which === 3)
     {
         document.documentElement.webkitRequestPointerLock();
@@ -114,7 +116,7 @@ InputProcessor.prototype.onMouseDown = function(event) {
     event.preventDefault();
 };
 
-InputProcessor.prototype.onMouseUp = function(event) {
+InputSystem.prototype.onMouseUp = function(event) {
     if(event.which === 3)
     {
         document.webkitExitPointerLock();
@@ -126,12 +128,12 @@ InputProcessor.prototype.onMouseUp = function(event) {
     event.preventDefault();
 };
 
-InputProcessor.prototype.isActive = function(code) {
+InputSystem.prototype.isActive = function(code) {
     if(code>268)return 0;
     return this.keys[code];
 };
 
-InputProcessor.prototype.onMouseMove = function(event) {
+InputSystem.prototype.onMouseMove = function(event) {
     this.movement[0] += event.movementX;
     this.movement[1] += event.movementY;
 
@@ -142,14 +144,14 @@ InputProcessor.prototype.onMouseMove = function(event) {
 };
 
 //Constants
-InputProcessor.MouseButton1 = 257;
-InputProcessor.MouseButton2 = 259;
-InputProcessor.MouseButton3 = 258;
+InputSystem.MouseButton1 = 257;
+InputSystem.MouseButton2 = 259;
+InputSystem.MouseButton3 = 258;
 
-InputProcessor.MouseX = 260;
-InputProcessor.MouseY = 261;
+InputSystem.MouseX = 260;
+InputSystem.MouseY = 261;
 
-InputProcessor.JoystickXPositive = 264;
-InputProcessor.JoystickXNegative = 265;
-InputProcessor.JoystickYPositive = 266;
-InputProcessor.JoystickYNegative = 267;
+InputSystem.JoystickXPositive = 264;
+InputSystem.JoystickXNegative = 265;
+InputSystem.JoystickYPositive = 266;
+InputSystem.JoystickYNegative = 267;

@@ -115,14 +115,15 @@ Orionark.Application.prototype = {
         this.onWindowResized();
 
         this.time = performance.now();
-        this.finish();
+        //this.finish();
+        this.timer = setTimeout(this.start, 0);
     },
 
     start: function() {
         //console.timeEnd("onk_finish");
         //console.time("onk_start");
 
-        //clearTimeout(this.timer);
+        clearTimeout(this.timer);
 
         var now = performance.now();
         this.dt = now - this.time;
@@ -147,8 +148,9 @@ Orionark.Application.prototype = {
     finish: function() {
         //console.timeEnd("onk_start");
         //console.time("onk_finish");
-        //this.timer = setTimeout(this.start, 0);
-        window.requestAnimationFrame(this.start);
+        this.timer = setTimeout(this.start, 0);
+        //window.requestAnimationFrame(this.start);
+        //this.start();
     },
 
     onWindowResized: function() {

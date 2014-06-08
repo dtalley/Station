@@ -1,10 +1,14 @@
-function RenderProcessor() {
+function RenderSystem(sp) {
+    SystemPrototype.call(this);
+
+    this.sp = sp;
+    
     this.camera = null;
 }
 
-RenderProcessor.prototype = new ProcessorPrototype();
+RenderSystem.prototype = new SystemPrototype();
 
-RenderProcessor.prototype.update = function() {
+RenderSystem.prototype.update = function() {
     if(!window.gr.enabled)return;
 
     var modelCount = ModelComponent.prototype.stack.length;
@@ -22,11 +26,6 @@ RenderProcessor.prototype.update = function() {
     {
         window.gr.updateMatrix(1, this.camera.ci);
     }
-
-    /*if(this.marked !== undefined && this.marked-- <= 0)
-        window.gr.enabled = false;
-
-    if(this.marked===undefined)this.marked = 50;*/
     
     for( var i = 0; i < modelCount; i++ )
     {

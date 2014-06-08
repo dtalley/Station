@@ -41,9 +41,22 @@ config.files.forEach(function(info){
 
 function concatenate(info) {
     var writeTo = [];
-
+    var outPath = __dirname + path.sep + ".." + path.sep + "..";
     info.output.forEach(function(file){
-        var out = fs.openSync(__dirname + path.sep + ".." + path.sep + ".." + path.sep + file, 'w');
+        var usePath = outPath;
+        var split = file.split("/");
+        if( split.length > 1 )
+        {
+            split.pop();
+            while(split.length)
+            {
+                usePath += path.sep + split.shift();
+                try {
+                    fs.mkdirSync(usePath);
+                }catch(e){if(e.code!='EEXIST')console.log(e);}
+            }
+        }
+        var out = fs.openSync(outPath + path.sep + file, 'w');
         writeTo.push(out);
 
         console.log("Writing to '" + file + "'.");
@@ -53,11 +66,12 @@ function concatenate(info) {
         var handle = fs.openSync(__dirname + path.sep + ".." + path.sep + ".." + path.sep + file, 'r');    
         var read = new Buffer(1024);
         var bytes = 0;
-        while(bytes = fs.readSync(handle, read, 0, read.length))
+        var iterator = function(out){
+            fs.writeSync(out, read, 0, bytes);
+        };
+        while((bytes = fs.readSync(handle, read, 0, read.length)))
         {
-            writeTo.forEach(function(out){
-                fs.writeSync(out, read, 0, bytes);
-            });
+            writeTo.forEach(iterator);
         }
 
         if( i < info.input.length -1 )
@@ -86,6 +100,17 @@ function copy(info) {
     if( output.substring(output.length-1, output.length) !== path.sep )
     {
         throw new Error("Copy operation output must be a directory.");
+    }
+
+    var outPath = __dirname + path.sep + ".." + path.sep + "..";
+    var split = output.split(path.sep);
+    var ensurePath = outPath;
+    while(split.length)
+    {
+        ensurePath += path.sep + split.shift();
+        try {
+            fs.mkdirSync(ensurePath);
+        }catch(e){if(e.code!='EEXIST')console.log(e);}
     }
 
     info.input.forEach(function(file, i){

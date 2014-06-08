@@ -58,8 +58,9 @@
 
         {
             "input": [
+                "common/source/math/glmatrix.js",
+
                 "client/source/web/library.js",
-                "client/source/web/base/glmatrix.js",
                 "client/source/web/batch/batch.js"
             ],
 
@@ -70,28 +71,33 @@
 
         {
             "input": [
-                "client/source/web/base/glmatrix.js",
+                "common/source/math/glmatrix.js",
+
+                "common/source/client_server/space/dynamic_aabb_tree.js",
 
                 "client/source/web/base/state/state.js",
                 "client/source/web/base/state/login.js",
                 "client/source/web/base/state/game.js",
                 "client/source/web/base/state/machine.js",
 
-                "client/source/web/base/system/processor.js",
+                "common/source/client_server/system/system.js",
+                
                 "client/source/web/base/system/render.js",
 
-                "client/source/web/base/asset/asset.js",
-                "client/source/web/base/asset/shader.js",
-                "client/source/web/base/asset/model.js",
-                "client/source/web/base/asset/program.js",
-                "client/source/web/base/asset/material.js",
+                "common/source/client_tools/asset/asset.js",
+                "common/source/client_tools/asset/shader.js",
+                "common/source/client_tools/asset/model.js",
+                "common/source/client_tools/asset/program.js",
+                "common/source/client_tools/asset/material.js",
 
-                "client/source/web/base/entity/entity.js",
-                "client/source/web/base/entity/transform.js",
+                "common/source/client_server/entity/entity.js",
+                "common/source/client_server/entity/transform.js",
+                "common/source/client_server/entity/collider.js",
+
                 "client/source/web/base/entity/model.js",
                 "client/source/web/base/entity/camera.js",
 
-                "client/source/web/base/graphics.js"
+                "common/source/client_tools/graphics.js"
             ],
 
             "output": [
@@ -106,7 +112,11 @@
                 "client/source/web/game/entity/input.js",
 
                 "client/source/web/game/system/dynamic.js",
-                "client/source/web/game/system/input.js"
+                "client/source/web/game/system/input.js",
+
+                "client/source/web/game/system/processor/actor.js",
+                "client/source/web/game/system/processor/container.js",
+                "client/source/web/game/system/processor/physics.js"
             ],
 
             "output": [

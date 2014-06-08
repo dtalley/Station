@@ -44,10 +44,11 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 
 GameState.prototype.onBundleLoaded = function() {
     this.em = new EntityManager();
+    this.sp = new DynamicAABBTree();
 
-    this.renderer = new RenderProcessor();
-    this.dynamic = new DynamicProcessor(this.em);
-    this.input = new InputProcessor();
+    this.renderer = new RenderSystem(this.sp);
+    this.dynamic = new DynamicSystem(this.em, this.sp);
+    this.input = new InputSystem();
     
     this.machine.onStateLoaded(this);
 };
@@ -56,32 +57,6 @@ GameState.prototype.show = function() {
     this.visible = true;
 
     window.ui.appendChild(this.fragment);
-
-    this.player = this.em.createEntity();
-    this.player.addComponent(TransformComponent).configure({
-        position: vec3.fromValues(0, 0.5, 0)
-    });
-    this.player.addComponent(InputComponent).configure({
-        driven: true
-    });
-    this.player.addComponent(ModelComponent).configure({
-        model: window.asset.get("models/test/arrow.oml"),
-        material: window.asset.get("materials/test/red.mtrl")
-    });
-    this.player.addComponent(DynamicComponent).configure({
-        character: true,
-        player: true,
-        size: 1
-    });
-
-    this.camera = this.em.createEntity();
-    this.camera.addComponent(CameraComponent).activate();
-    this.camera.addComponent(TransformComponent).configure({
-        parent: this.player.getComponent(TransformComponent),
-        position: vec3.fromValues(0, 40, 20),
-        rotation: quat.rotateX(quat.create(), quat.zero, -63 * Math.PI / 180),
-        watcher: this.camera.getComponent(CameraComponent)
-    });
 };
 
 GameState.prototype.subDestroy = function() {
