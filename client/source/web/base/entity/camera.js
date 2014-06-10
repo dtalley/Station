@@ -19,6 +19,10 @@ CameraComponent.prototype = new ComponentPool(CameraComponent);
 
 CameraComponent.prototype.onAttached = function() {
     this.entity.camera = this;
+    this.transform = this.entity.getComponent(TransformComponent);
+    this.transform.on("update", this.update, this);
+    this.transform.watchers++;
+    this.update();
 };
 
 CameraComponent.prototype.onDetached = function() {

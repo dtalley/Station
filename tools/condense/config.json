@@ -59,6 +59,8 @@
         {
             "input": [
                 "common/source/math/glmatrix.js",
+                "common/source/math/glmatrix_ext.js",
+                "common/source/math/aabb.js",
 
                 "client/source/web/library.js",
                 "client/source/web/batch/batch.js"
@@ -72,6 +74,8 @@
         {
             "input": [
                 "common/source/math/glmatrix.js",
+                "common/source/math/glmatrix_ext.js",
+                "common/source/math/aabb.js",
 
                 "common/source/client_server/space/dynamic_aabb_tree.js",
 

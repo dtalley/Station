@@ -5,6 +5,7 @@ function ActorProcessor(sp) {
 
     this.movement = vec4.fromValues(0, 0, 0, 1);
     this.grabShape = new ColliderComponent.Sphere(0, 0, -0.5, 0, 0, -0.5, Math.PI / 2);
+    this.grabAABB = new aabb();
 
     this.moveSpeed = window.app.step * 0.005;
 }
@@ -73,11 +74,12 @@ ActorProcessor.prototype.processPlayer = function(player) {
         }
     }
 
-    this.sp.query(this.grabShape, playerTransform.matrix);
+    this.grabShape.calculateAABB(this.grabAABB, playerTransform.matrix);
+    this.sp.query(this.grabAABB);
     var count = this.sp.results.length;
     for( var i = 0; i < count; i++ )
     {
-
+        //console.log("Query result", i);
     }
 
     return;

@@ -9,7 +9,7 @@ function TransformComponent() {
 
     this.indices = new RingBuffer();
     this.children = [];
-    this.watcher = null;
+    this.watchers = 0;
     this.index = 0;
 
     this.matrix = mat4.create();
@@ -69,7 +69,6 @@ TransformComponent.prototype.configure = function(options) {
     if(options.scale) vec3.copy(this.scale, options.scale);
     if(options.rotation) quat.copy(this.rotation, options.rotation);
 
-    if(options.watcher) this.watcher = options.watcher;
     if(options.parent) options.parent.addChild(this);
     
     this.update();
@@ -95,9 +94,9 @@ TransformComponent.prototype.update = function() {
         }
     }
 
-    if(this.watcher)
+    if(this.watchers)
     {
-        this.watcher.update();
+        this.emit("update", this);
     }
 };
 

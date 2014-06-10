@@ -9,12 +9,15 @@ Orionark.Application = function() {
 
     this.start = this.start.bind(this);
     this.finish = this.finish.bind(this);
+    this.update = this.update.bind(this);
 
     this.time = 0;
     this.now = 0;
     this.dt = 0;
     this.step = 1000.0 / 60.0;
     this.accumulator = 0.0;
+
+    this.draw = false;
 
     var process = process || null;
     if( process )
@@ -116,12 +119,18 @@ Orionark.Application.prototype = {
 
         this.time = performance.now();
         //this.finish();
-        this.timer = setTimeout(this.start, 0);
+        this.timer = setTimeout(this.update, 0);
+        window.requestAnimationFrame(this.start);
     },
 
-    start: function() {
+    update: function() {
         //console.timeEnd("onk_finish");
         //console.time("onk_start");
+
+        if(this.draw)
+        {
+            this.render();
+        }
 
         clearTimeout(this.timer);
 
@@ -129,15 +138,26 @@ Orionark.Application.prototype = {
         this.dt = now - this.time;
         this.time = now;
 
+        var count = 0;
+        
         //console.time("onk_simulate");
         this.accumulator += this.dt;
         while(this.accumulator >= this.step)
         {
             this.machine.simulate();
             this.accumulator -= this.step;
+            count++;
         }
         //console.timeEnd("onk_simulate");
 
+        this.timer = setTimeout(this.update, 0);
+    },
+
+    start: function(time) {
+        this.draw = true;
+    },
+
+    render: function() {
         window.gr.startFrame();
         //console.time("onk_gather");
         this.machine.render();
@@ -148,8 +168,8 @@ Orionark.Application.prototype = {
     finish: function() {
         //console.timeEnd("onk_start");
         //console.time("onk_finish");
-        this.timer = setTimeout(this.start, 0);
-        //window.requestAnimationFrame(this.start);
+        
+        window.requestAnimationFrame(this.start);
         //this.start();
     },
 

@@ -98,6 +98,8 @@ function ComponentPrototype() {
     this.index = 0;
 }
 
+ComponentPrototype.prototype = new EventEmitter();
+
 ComponentPrototype.prototype.attach = function(entity) {
     this.entity = entity;
     this.onAttached();

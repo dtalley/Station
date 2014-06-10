@@ -15,13 +15,12 @@ function DynamicSystem(em, sp) {
     this.player = this.createActor(true);
 
     this.camera = this.em.createEntity();
-    this.camera.addComponent(CameraComponent).activate();
     this.camera.addComponent(TransformComponent).configure({
         parent: this.player.getComponent(TransformComponent),
         position: vec3.fromValues(0, 40, 20),
-        rotation: quat.rotateX(quat.create(), quat.zero, -63 * Math.PI / 180),
-        watcher: this.camera.getComponent(CameraComponent)
+        rotation: quat.rotateX(quat.create(), quat.zero, -63 * Math.PI / 180)
     });
+    this.camera.addComponent(CameraComponent).activate();
 
     this.createGrid();
 
@@ -33,7 +32,7 @@ function DynamicSystem(em, sp) {
             scale: vec3.fromValues(0.5, 0.5, 0.5)
         });
         crate.addComponent(ColliderComponent).configure({
-            shape: new ColliderComponent.Box(-0.5, 0.5, -0.5, 0.5 -0.5, 0.5)
+            shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5)
         });
         crate.addComponent(ModelComponent).configure({
             model: window.asset.get("models/test/cube.oml"),
@@ -65,7 +64,7 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
         position: vec3.fromValues(0, 0.5, 0)
     });
     var collider = actor.addComponent(ColliderComponent).configure({
-        shape: new ColliderComponent.Box(-0.5, 0.5, -0.5, 0.5 -0.5, 0.5)
+        shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5)
     });
     actor.addComponent(InputComponent).configure({
         driven: !!isPlayer

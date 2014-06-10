@@ -1,5 +1,3 @@
-quat.zero = quat.identity(quat.create());
-
 function GraphicsManager(finishCallback) {
     this.onBatchMessage = this.onBatchMessage.bind(this);
 
@@ -387,7 +385,6 @@ GraphicsManager.prototype.startCommand = function(type) {
         else 
         {
             this.writing = new ArrayBuffer(1024 * 16).imbue();
-            console.log("what");
         }
         this.writeOffset = 0;
     }
