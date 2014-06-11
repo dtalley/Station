@@ -84,3 +84,11 @@ ColliderComponent.Sphere = function(px, py, pz, vx, vy, vz, span) {
 };
 
 ColliderComponent.Sphere.prototype = new ColliderComponent.CollisionShape();
+
+ColliderComponent.addFlag = (function() {
+    var current = 0;
+    return function() {
+        if(current > 31) throw new Error("Too many collider flags requested!");
+        return 1 << current++;
+    };
+})();

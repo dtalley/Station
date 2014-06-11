@@ -32,7 +32,8 @@ function DynamicSystem(em, sp) {
             scale: vec3.fromValues(0.5, 0.5, 0.5)
         });
         crate.addComponent(ColliderComponent).configure({
-            shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5)
+            shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
+            flags: DynamicSystem.Usable
         });
         crate.addComponent(ModelComponent).configure({
             model: window.asset.get("models/test/cube.oml"),
@@ -64,7 +65,8 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
         position: vec3.fromValues(0, 0.5, 0)
     });
     var collider = actor.addComponent(ColliderComponent).configure({
-        shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5)
+        shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
+        flags: DynamicSystem.Character
     });
     actor.addComponent(InputComponent).configure({
         driven: !!isPlayer
@@ -142,3 +144,6 @@ DynamicSystem.prototype.createGrid = function() {
         model: model
     });
 };
+
+DynamicSystem.Character = ColliderComponent.addFlag();
+DynamicSystem.Usable = ColliderComponent.addFlag();

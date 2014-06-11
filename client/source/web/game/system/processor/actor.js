@@ -4,10 +4,15 @@ function ActorProcessor(sp) {
     this.sp = sp; //Spatial partitioner
 
     this.movement = vec4.fromValues(0, 0, 0, 1);
+    this.result = vec4.fromValues(0, 0, 0, 1);
+
     this.grabShape = new ColliderComponent.Sphere(0, 0, -0.5, 0, 0, -0.5, Math.PI / 2);
     this.grabAABB = new aabb();
 
     this.moveSpeed = window.app.step * 0.005;
+
+    this.playerTransform = null;
+    this.player = null;
 }
 
 ActorProcessor.prototype = new ProcessorPrototype();
@@ -74,72 +79,64 @@ ActorProcessor.prototype.processPlayer = function(player) {
         }
     }
 
+    this.player = player;
+    this.playerTransform = playerTransform;
+
     this.grabShape.calculateAABB(this.grabAABB, playerTransform.matrix);
-    this.sp.query(this.grabAABB);
-    var count = this.sp.results.length;
-    for( var i = 0; i < count; i++ )
-    {
-        //console.log("Query result", i);
-    }
+    this.sp.query(this.grabAABB, DynamicSystem.Usable, this.handlePlayerUsableQueryResult, this);
+};
 
-    return;
-    var count = this.dynamics.length;
-    for( var i = 0; i < count; i++ )
-    {
-        var dynamic = this.dynamics[i];
+ActorProcessor.prototype.handlePlayerUsableQueryResult = function(collider, empty) {
+    var player = this.player;
 
-        if( dynamic.deployable )
+    if( empty )
+    {
+        if( player.targeting )
         {
-            var dynamicTransform = dynamic.entity.transform;
-
-            var distance = vec3.distance(dynamicTransform.position, playerTransform.position);
-            if( distance < 1 )
-            {
-                playerTransform.rotateUnitVector4(this.movement);
-
-                vec3.subtract(this.result, dynamicTransform.position, playerTransform.position);
-                var dot = vec3.dot(this.result, this.movement);
-                
-                if( dot < 0 && ( 0 - dot ) > ( distance * 0.9 ) )
-                {
-                    if(player.targeting === dynamic)
-                    {
-                        if(player.entity.input.actions[0] && !player.using)
-                        {
-                            player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-                            player.targeting = null;       
-
-                            player.holding = dynamic;
-                            player.holding.entity.model.material = window.asset.get("materials/test/blue.mtrl");
-
-                            dynamicTransform.position[0] = 0;
-                            dynamicTransform.position[1] = 0;
-                            dynamicTransform.position[2] = -0.8;
-                            quat.identity(dynamicTransform.rotation, dynamicTransform.rotation);
-                            playerTransform.addChild(dynamicTransform);
-
-                            player.using = true;
-                        }
-
-                        return;
-                    }
-                    else if(player.targeting)
-                    {
-                        player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-                        player.targeting = null;
-                    }
-
-                    player.targeting = dynamic;
-                    player.targeting.entity.model.material = window.asset.get("materials/test/green.mtrl");
-                    return;
-                }
-            }
+            player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
+            player.targeting = null;
         }
+        return;
     }
 
-    if(player.targeting)
+    var dynamic = collider.entity.getComponent(DynamicComponent);
+
+    if( dynamic.deployable )
     {
-        player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-        player.targeting = null;
+        var dynamicTransform = dynamic.entity.transform;
+
+        if(player.targeting === dynamic)
+        {
+            if(player.entity.input.actions[0] && !player.using)
+            {
+                player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
+                player.targeting = null;       
+
+                player.holding = dynamic;
+                player.holding.entity.model.material = window.asset.get("materials/test/blue.mtrl");
+
+                dynamicTransform.position[0] = 0;
+                dynamicTransform.position[1] = 0;
+                dynamicTransform.position[2] = -0.8;
+                quat.identity(dynamicTransform.rotation, dynamicTransform.rotation);
+                this.playerTransform.addChild(dynamicTransform);
+
+                player.using = true;
+            }
+
+            return false;
+        }
+        else if(player.targeting)
+        {
+            player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
+            player.targeting = null;
+        }
+
+        player.targeting = dynamic;
+        player.targeting.entity.model.material = window.asset.get("materials/test/green.mtrl");
+
+        return false;
     }
+
+    return true;
 };
