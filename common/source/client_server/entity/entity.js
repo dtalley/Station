@@ -1,6 +1,6 @@
 function Entity(id) {
     this.id = id;
-    this.components = [];
+    this.components = {};
     this.indices = new RingBuffer();
 
     //Common components
@@ -9,13 +9,15 @@ function Entity(id) {
     this.model = null;
     this.input = null;
     this.collider = null;
+
+    this.props = {};
 }
 
 Entity.prototype.addComponent = function(component, flags) {
     var instance = component;
     if( typeof component === "function" )
     {
-        instance = component.prototype.create(flags).attach(this);
+        instance = component.prototype.create(flags);
     }
 
     if( !instance )
@@ -23,16 +25,13 @@ Entity.prototype.addComponent = function(component, flags) {
         return null;
     }
     
-    if( this.indices.span > 0 )
+    if( this.components[instance.type] )
     {
-        instance.index = this.indices.shift();
-        this.components[instance.index] = instance;
+        throw new Error("Attempt to add duplicate component.");
     }
-    else
-    {
-        instance.index = this.components.length;
-        this.components.push(instance);
-    }
+
+    this.components[instance.type] = instance;
+    instance.attach(this);
 
     return instance;
 };
@@ -41,35 +40,27 @@ Entity.prototype.removeComponent = function(component) {
     var instance = component;
     if( typeof component === "function" )
     {
-        var exists = this.components.some(function(candidate){
-            if( candidate && candidate.constructor === component )
-            {
-                instance = candidate;
-                return true;
-            }
-
-            return false;
-        });
-        if(!exists)return null;
+        instance = this.components[component.prototype.type];
     }
-        
-    this.indices.push(instance.index);
-    this.components[instance.index] = null;
+
+    if(!instance)
+    {
+        return null;
+    }
+    
+    if( !this.components[instance.type] )
+    {
+        return instance;
+    }
+
+    this.components[instance.type] = null;
+
     instance.detach();
     return instance;
 };
 
 Entity.prototype.getComponent = function(component) {
-    var instance = null;
-    this.components.some(function(candidate){
-        if( candidate && candidate.constructor === component )
-        {
-            instance = candidate;
-            return true;
-        }
-
-        return false;
-    });
+    var instance = this.components[component.prototype.type];
     return instance;
 };
 
@@ -121,11 +112,12 @@ ComponentPrototype.prototype.configure = function(options){
     return this;
 };
 
-function ComponentPool(constructor) {
+function ComponentPool(constructor, type) {
     this.entity = null;
     this.pool = [];
     this.stack = [];
     this.constructor = constructor;
+    this.type = type;
 }
 
 ComponentPool.prototype = new ComponentPrototype();

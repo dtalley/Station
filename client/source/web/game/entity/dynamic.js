@@ -1,21 +1,15 @@
 DynamicComponent = function() {
     ComponentPrototype.call(this);
 
-    this.player = false;
-    this.using = false;
-
-    this.movement = new Float32Array(2);
-    this.movement[0] = 0;
-    this.movement[1] = 0;
-
-    this.holding = null;
-    this.targeting = null;
+    this.actor = null;
+    this.deployable = null;
 };
 
-DynamicComponent.prototype = new ComponentPool(DynamicComponent);
+DynamicComponent.prototype = new ComponentPool(DynamicComponent, "dynamic");
 
 DynamicComponent.prototype.onAttached = function() {
-    
+    this.actor = this.entity.getComponent(ActorComponent);
+    this.deployable = this.entity.getComponent(DeployableComponent);
 };
 
 DynamicComponent.prototype.onDetached = function() {

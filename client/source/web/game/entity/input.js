@@ -36,7 +36,7 @@ function InputComponent(flags) {
     this.driven = false;
 }
 
-InputComponent.prototype = new ComponentPool(InputComponent);
+InputComponent.prototype = new ComponentPool(InputComponent, "input");
 
 InputComponent.prototype.onAttached = function() {
     this.entity.input = this;

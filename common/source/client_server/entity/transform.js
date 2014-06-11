@@ -17,7 +17,7 @@ function TransformComponent() {
     this.storedMatrix = -1;
 }
 
-TransformComponent.prototype = new ComponentPool(TransformComponent);
+TransformComponent.prototype = new ComponentPool(TransformComponent, "transform");
 
 TransformComponent.prototype.addChild = function(child) {
     if(child.parent===this) return;

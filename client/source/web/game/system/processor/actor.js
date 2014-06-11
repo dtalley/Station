@@ -1,12 +1,13 @@
-function ActorProcessor(sp) {
+function ActorProcessor(em, sp) {
     ProcessorPrototype.call(this);
 
+    this.em = em; //Entity manager
     this.sp = sp; //Spatial partitioner
 
     this.movement = vec4.fromValues(0, 0, 0, 1);
     this.result = vec4.fromValues(0, 0, 0, 1);
 
-    this.grabShape = new ColliderComponent.Sphere(0, 0, -0.5, 0, 0, -0.5, Math.PI / 2);
+    this.grabShape = new ColliderComponent.Sphere(0, 0, -1, 0, 0, -0.1, Math.PI / 2);
     this.grabAABB = new aabb();
 
     this.moveSpeed = window.app.step * 0.005;
@@ -17,34 +18,30 @@ function ActorProcessor(sp) {
 
 ActorProcessor.prototype = new ProcessorPrototype();
 
-ActorProcessor.prototype.process = function() {
-    for( var i = 0; i < this.components.length; i++ )
+ActorProcessor.prototype.process = function(actor) {
+    var transform = actor.entity.transform;
+    var input = actor.entity.input;
+    var updated = false;
+    
+    if(input.mouse[1])
     {
-        var dynamic = this.components.array[i];
-        var transform = dynamic.entity.transform;
-        var input = dynamic.entity.input;
-        var updated = false;
-        
-        if(input.mouse[1])
-        {
-            quat.rotateY(transform.rotation, transform.rotation, input.view[0] * -1);
-            updated = true;
-        }
+        quat.rotateY(transform.rotation, transform.rotation, input.view[0] * -1);
+        updated = true;
+    }
 
-        if(input.direction[0] !== 0 || input.direction[2] !== 0)
-        {
-            vec4.transformQuat(this.movement, input.direction, transform.rotation);
-            vec4.scale(this.movement, this.movement, this.moveSpeed);
-            vec4.add(transform.position, transform.position, this.movement);
-            updated = true;
-        }
+    if(input.direction[0] !== 0 || input.direction[2] !== 0)
+    {
+        vec4.transformQuat(this.movement, input.direction, transform.rotation);
+        vec4.scale(this.movement, this.movement, this.moveSpeed);
+        vec4.add(transform.position, transform.position, this.movement);
+        updated = true;
+    }
 
-        if(updated) transform.update();
+    if(updated) transform.update();
 
-        if( dynamic.player )
-        {
-            this.processPlayer(dynamic);
-        }
+    if( actor.player )
+    {
+        this.processPlayer(actor);
     }
 };
 

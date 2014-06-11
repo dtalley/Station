@@ -77,7 +77,7 @@
                 "common/source/math/glmatrix_ext.js",
                 "common/source/math/aabb.js",
 
-                "common/source/client_server/space/dynamic_aabb_tree.js",
+                "common/source/client_server/broadphase/dynamic_aabb_tree.js",
 
                 "client/source/web/base/state/state.js",
                 "client/source/web/base/state/login.js",
@@ -114,6 +114,8 @@
                 "client/source/web/game/entity/container.js",
                 "client/source/web/game/entity/dynamic.js",
                 "client/source/web/game/entity/input.js",
+                "client/source/web/game/entity/actor.js",
+                "client/source/web/game/entity/deployable.js",
 
                 "client/source/web/game/system/dynamic.js",
                 "client/source/web/game/system/input.js",

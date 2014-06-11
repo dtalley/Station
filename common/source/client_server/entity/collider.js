@@ -7,9 +7,10 @@ function ColliderComponent() {
     this.flags = 0;
 
     this.transform = null;
+    this.container = null; //Broadphase container
 }
 
-ColliderComponent.prototype = new ComponentPool(ColliderComponent);
+ColliderComponent.prototype = new ComponentPool(ColliderComponent, "collider");
 
 ColliderComponent.prototype.onAttached = function() {
     this.entity.collider = this;
@@ -31,9 +32,17 @@ ColliderComponent.prototype.update = function() {
 
 ColliderComponent.prototype.configure = function(options) {
     this.flags = 0;
+    this.broadphase = null;
 
     if(options.flags) this.flags = options.flags;
     if(options.shape) this.shape = options.shape;
+
+    if(options.broadphase) this.broadphase = options.broadphase;
+
+    if( this.broadphase )
+    {
+        this.broadphase.insert(this);
+    }
 
     this.update();
 

@@ -1,16 +1,14 @@
 function DynamicSystem(em, sp) {
     SystemPrototype.call(this);
 
+    this.dynamics = DynamicComponent.prototype.stack;
+
     this.em = em; //Entity Manager
     this.sp = sp; //Spatial partitioner
 
-    this.actors = new ActorProcessor(this.sp);
-    this.containers = new ContainerProcessor(this.sp);
-    this.physics = new PhysicsProcessor(this.sp);
-
-    this.movement = vec4.create();
-    this.result = vec4.create();
-    this.rq = quat.create();
+    this.actors = new ActorProcessor(this.em, this.sp);
+    this.containers = new ContainerProcessor(this.em, this.sp);
+    this.physics = new PhysicsProcessor(this.em, this.sp);
 
     this.player = this.createActor(true);
 
@@ -33,17 +31,15 @@ function DynamicSystem(em, sp) {
         });
         crate.addComponent(ColliderComponent).configure({
             shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
-            flags: DynamicSystem.Usable
+            flags: DynamicSystem.Usable,
+            broadphase: this.sp
         });
         crate.addComponent(ModelComponent).configure({
             model: window.asset.get("models/test/cube.oml"),
             material: window.asset.get("materials/test/gray.mtrl")
         });
-        crate.addComponent(DynamicComponent).configure({
-            deployable: true
-        });
-
-        this.physics.addComponent(crate.getComponent(ColliderComponent));
+        crate.addComponent(DeployableComponent);
+        crate.addComponent(DynamicComponent);
     }
 
     this.cursor = this.em.createEntity();
@@ -64,9 +60,10 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
     actor.addComponent(TransformComponent).configure({
         position: vec3.fromValues(0, 0.5, 0)
     });
-    var collider = actor.addComponent(ColliderComponent).configure({
+    actor.addComponent(ColliderComponent).configure({
         shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
-        flags: DynamicSystem.Character
+        flags: DynamicSystem.Character,
+        broadphase: this.sp
     });
     actor.addComponent(InputComponent).configure({
         driven: !!isPlayer
@@ -75,20 +72,25 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
         model: window.asset.get("models/test/arrow.oml"),
         material: window.asset.get("materials/test/red.mtrl")
     });
-    var dynamic = actor.addComponent(DynamicComponent).configure({
+    actor.addComponent(ActorComponent).configure({
         player: !!isPlayer
     });
-
-    this.actors.addComponent(dynamic);
-    this.physics.addComponent(collider);
+    actor.addComponent(DynamicComponent);
 
     return actor;
 };
 
 DynamicSystem.prototype.update = function() {
-    this.physics.process();
-    this.actors.process();
-    this.containers.process();
+    var count = this.dynamics.length;
+    for( var i = 0; i < count; i++ )
+    {
+        var dynamic = this.dynamics[i];
+
+        if( dynamic.actor )
+        {
+            this.actors.process(dynamic.actor);
+        }
+    }
 };
 
 DynamicSystem.prototype.createGrid = function() {

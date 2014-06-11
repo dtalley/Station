@@ -1,6 +1,7 @@
-function PhysicsProcessor(sp) {
+function PhysicsProcessor(em, sp) {
     ProcessorPrototype.call(this);
 
+    this.em = em; //Entity manager;
     this.sp = sp; //Spatial partitioner
 }
 

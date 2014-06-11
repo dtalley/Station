@@ -10,7 +10,7 @@ ContainerComponent = function(flags) {
     this.height = 1;
 };
 
-ContainerComponent.prototype = new ComponentPool(ContainerComponent);
+ContainerComponent.prototype = new ComponentPool(ContainerComponent, "container");
 
 ContainerComponent.prototype.storeChunk = function(entity) {
 
