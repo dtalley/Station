@@ -1,12 +1,12 @@
-function ContainerProcessor(em, sp) {
+function ContainerProcessor(em, bp) {
     ProcessorPrototype.call(this);
 
     this.em = em; //Entity manager
-    this.sp = sp; //Spatial partitioner
+    this.bp = bp; //Broadphase data structure
 }
 
 ContainerProcessor.prototype = new ProcessorPrototype();
 
-ContainerProcessor.prototype.process = function() {
+ContainerProcessor.prototype.process = function(container) {
 
 };

@@ -15,7 +15,7 @@ function CameraComponent() {
 
 CameraComponent.active = null;
 
-CameraComponent.prototype = new ComponentPool(CameraComponent);
+CameraComponent.prototype = new ComponentPool(CameraComponent, "camera");
 
 CameraComponent.prototype.onAttached = function() {
     this.entity.camera = this;

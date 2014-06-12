@@ -1,20 +1,12 @@
-function PhysicsProcessor(em, sp) {
+function PhysicsProcessor(em, bp) {
     ProcessorPrototype.call(this);
 
     this.em = em; //Entity manager;
-    this.sp = sp; //Spatial partitioner
+    this.bp = bp; //Broadphase data structure
 }
 
 PhysicsProcessor.prototype = new ProcessorPrototype();
 
-PhysicsProcessor.prototype.onComponentAdded = function(collider) {
-    this.sp.insert(collider);
-};
-
-PhysicsProcessor.prototype.onComponentRemoved = function(collider) {
-    this.sp.remove(collider);
-};
-
-PhysicsProcessor.prototype.process = function() {
+PhysicsProcessor.prototype.process = function(rigidBody) {
 
 };

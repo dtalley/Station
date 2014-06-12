@@ -21,13 +21,23 @@ ColliderComponent.prototype.onAttached = function() {
 
 ColliderComponent.prototype.onDetached = function() {
     this.entity.collider = null;
-    this.transform.watcher = null;
+    this.transform.off("update", this.update);
     this.transform.watchers--;
     this.transform = null;
+    
+    if(this.node && this.broadphase)
+    {
+        this.broadphase.remove(this);
+    }
 };
 
 ColliderComponent.prototype.update = function() {
     this.shape.calculateAABB(this.aabb, this.transform.matrix);
+
+    if(!this.node && this.broadphase)
+    {
+        this.broadphase.insert(this);
+    }
 };
 
 ColliderComponent.prototype.configure = function(options) {
@@ -38,11 +48,6 @@ ColliderComponent.prototype.configure = function(options) {
     if(options.shape) this.shape = options.shape;
 
     if(options.broadphase) this.broadphase = options.broadphase;
-
-    if( this.broadphase )
-    {
-        this.broadphase.insert(this);
-    }
 
     this.update();
 
@@ -88,8 +93,13 @@ ColliderComponent.Sphere = function(px, py, pz, vx, vy, vz, span) {
     var c = this.c, e = this.e;
     var r = this.r;
 
-    c[0] = px; c[1] = py; c[2] = pz;
-    e[0] = r; e[1] = r; e[2] = r;
+    c[0] = px; 
+    c[1] = py; 
+    c[2] = pz;
+
+    e[0] = r; 
+    e[1] = r; 
+    e[2] = r;
 };
 
 ColliderComponent.Sphere.prototype = new ColliderComponent.CollisionShape();

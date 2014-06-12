@@ -1,4 +1,5 @@
-function Entity(id) {
+function Entity(em, id) {
+    this.em = em;
     this.id = id;
     this.components = {};
     this.indices = new RingBuffer();
@@ -37,6 +38,8 @@ Entity.prototype.addComponent = function(component, flags) {
 };
 
 Entity.prototype.removeComponent = function(component) {
+    if(!component) return null;
+
     var instance = component;
     if( typeof component === "function" )
     {
@@ -48,13 +51,12 @@ Entity.prototype.removeComponent = function(component) {
         return null;
     }
     
-    if( !this.components[instance.type] )
+    if( !this.components[instance.type] || this.components[instance.type] !== instance )
     {
         return instance;
     }
 
     this.components[instance.type] = null;
-
     instance.detach();
     return instance;
 };
@@ -64,8 +66,16 @@ Entity.prototype.getComponent = function(component) {
     return instance;
 };
 
+Entity.prototype.strip = function() {
+    for( var key in this.components )
+    {
+        var instance = this.removeComponent(this.components[key]);
+        if( instance ) instance.release();
+    }
+};
+
 function EntityManager() {
-    this.pool = [];
+    this.pool = new StackPool();
     this.stack = [];
     this.counter = 0;
 }
@@ -76,17 +86,17 @@ EntityManager.prototype.createEntity = function() {
         return this.pool.pop();
     }
 
-    this.stack.push(new Entity(this.counter++));
+    this.stack.push(new Entity(this, this.counter++));
     return this.stack[this.stack.length-1];
 };
 
 EntityManager.prototype.releaseEntity = function(entity) {
+    entity.strip();
     this.pool.push(entity);
 };
 
 function ComponentPrototype() {
     this.id = 0;
-    this.index = 0;
 }
 
 ComponentPrototype.prototype = new EventEmitter();
@@ -128,15 +138,14 @@ ComponentPool.prototype.release = function() {
     return this;
 };
 
-ComponentPool.prototype.create = function(flags) {
+ComponentPool.prototype.create = function() {
     if( this.pool.length > 0 )
     {
         var component = this.pool.pop();
-        component.flags = flags;
         return component;
     }
 
-    this.stack.push(new this.constructor(flags));
+    this.stack.push(new this.constructor());
     this.stack[this.stack.length-1].id = this.stack.length - 1;
     return this.stack[this.stack.length-1];
 };

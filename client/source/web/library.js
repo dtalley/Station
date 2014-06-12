@@ -151,6 +151,7 @@ ObjectRegistry.prototype.remove = function(object) {
     if( index >= 0 )
     {
         this.array[index] = this.array[this.length-1];
+        this.array[this.length-1] = null;
         this.length--;
     }
 };
@@ -200,7 +201,7 @@ EventEmitter.prototype.on = function(event, callback, owner) {
     this.events[event].listeners.add(registry);
 };
 
-EventEmitter.prototype.emit = function(event, data) {
+EventEmitter.prototype.emit = function(event, arg1, arg2, arg3) {
     if(!this.events) this.events = {};
 
     if( !this.events[event] ) return;
@@ -210,7 +211,7 @@ EventEmitter.prototype.emit = function(event, data) {
     for( var i = 0; i < count; i++ )
     {
         var listener = listeners.array[i];
-        listener.cb.call(listener.o, data);
+        listener.cb.call(listener.o, arg1, arg2, arg3);
     }
 };
 
@@ -227,6 +228,8 @@ EventEmitter.prototype.off = function(event, callbackOrOwner) {
         {
             this.registries.push(listener);
             listeners.remove(listener);
+            i--;
+            count--;
         }
     }
 };

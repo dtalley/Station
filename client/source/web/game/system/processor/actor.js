@@ -1,19 +1,31 @@
-function ActorProcessor(em, sp) {
+function ActorProcessor(em, bp) {
     ProcessorPrototype.call(this);
 
     this.em = em; //Entity manager
-    this.sp = sp; //Spatial partitioner
+    this.bp = bp; //Broadphase data structure
 
     this.movement = vec4.fromValues(0, 0, 0, 1);
     this.result = vec4.fromValues(0, 0, 0, 1);
 
     this.grabShape = new ColliderComponent.Sphere(0, 0, -1, 0, 0, -0.1, Math.PI / 2);
-    this.grabAABB = new aabb();
+    this.deployShape = new ColliderComponent.Box(0, 0, -1, 0.5, 0.5, 0.5);
+
+    this.queryAABB = new aabb();
 
     this.moveSpeed = window.app.step * 0.005;
 
     this.playerTransform = null;
     this.player = null;
+
+    this.cursor = this.em.createEntity();
+    this.cursor.addComponent(TransformComponent).configure({
+        position: vec3.fromValues(0.5, 0.5, 0.5)
+    });
+    this.cursor.addComponent(ModelComponent).configure({
+        model: window.asset.get("models/test/cube.oml"),
+        material: window.asset.get("materials/test/green.mtrl"),
+        visible: false
+    });
 }
 
 ActorProcessor.prototype = new ProcessorPrototype();
@@ -58,6 +70,9 @@ ActorProcessor.prototype.processPlayer = function(player) {
 
     if( player.holding )
     {
+        this.deployShape.calculateAABB(this.queryAABB, playerTransform.matrix);
+
+
         if( player.entity.input.actions[0] && !player.using )
         {
             var holdingTransform = player.holding.entity.transform;
@@ -69,6 +84,22 @@ ActorProcessor.prototype.processPlayer = function(player) {
             player.entity.transform.removeChild(holdingTransform);
             player.holding = null;
             player.using = true;
+            this.cursor.model.visible = false;
+            playerTransform.removeChild(this.cursor.transform);
+        }
+        else if( player.entity.input.mouse[0] && !player.using )
+        {
+            var holding = player.holding;
+
+            if( holding.deployable )
+            {
+                this.emit("playerDeploy", player, player.holding.deployable);
+
+                player.holding = null;
+                player.using = true;
+                this.cursor.model.visible = false;
+                playerTransform.removeChild(this.cursor.transform);       
+            }
         }
         else
         {
@@ -77,10 +108,9 @@ ActorProcessor.prototype.processPlayer = function(player) {
     }
 
     this.player = player;
-    this.playerTransform = playerTransform;
 
-    this.grabShape.calculateAABB(this.grabAABB, playerTransform.matrix);
-    this.sp.query(this.grabAABB, DynamicSystem.Usable, this.handlePlayerUsableQueryResult, this);
+    this.grabShape.calculateAABB(this.queryAABB, playerTransform.matrix);
+    this.bp.query(this.queryAABB, DynamicSystem.Usable, this.handlePlayerUsableQueryResult, this);
 };
 
 ActorProcessor.prototype.handlePlayerUsableQueryResult = function(collider, empty) {
@@ -116,9 +146,19 @@ ActorProcessor.prototype.handlePlayerUsableQueryResult = function(collider, empt
                 dynamicTransform.position[1] = 0;
                 dynamicTransform.position[2] = -0.8;
                 quat.identity(dynamicTransform.rotation, dynamicTransform.rotation);
-                this.playerTransform.addChild(dynamicTransform);
+                player.entity.transform.addChild(dynamicTransform);
 
                 player.using = true;
+
+                this.cursor.model.visible = true;
+                player.entity.transform.addChild(this.cursor.transform);
+                this.cursor.transform.position[0] = 0;
+                this.cursor.transform.position[1] = -0.375;
+                this.cursor.transform.position[2] = -1;
+                this.cursor.transform.scale[0] = 1;
+                this.cursor.transform.scale[1] = 0.25;
+                this.cursor.transform.scale[2] = 1;
+                this.cursor.transform.update();
             }
 
             return false;

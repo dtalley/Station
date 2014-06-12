@@ -62,6 +62,11 @@ TransformComponent.prototype.onAttached = function() {
 
 TransformComponent.prototype.onDetached = function() {
     this.entity.transform = null;
+
+    if( this.parent )
+    {
+        this.parent.removeChild(this);
+    }
 };
 
 TransformComponent.prototype.configure = function(options) {

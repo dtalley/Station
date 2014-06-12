@@ -44,10 +44,10 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 
 GameState.prototype.onBundleLoaded = function() {
     this.em = new EntityManager();
-    this.sp = new DynamicAABBTree();
+    this.bp = new DynamicAABBTree();
 
-    this.renderer = new RenderSystem(this.sp);
-    this.dynamic = new DynamicSystem(this.em, this.sp);
+    this.renderer = new RenderSystem(this.bp);
+    this.dynamic = new DynamicSystem(this.em, this.bp);
     this.input = new InputSystem();
     
     this.machine.onStateLoaded(this);

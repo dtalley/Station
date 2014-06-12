@@ -1,14 +1,16 @@
-function DynamicSystem(em, sp) {
+function DynamicSystem(em, bp) {
     SystemPrototype.call(this);
 
     this.dynamics = DynamicComponent.prototype.stack;
 
     this.em = em; //Entity Manager
-    this.sp = sp; //Spatial partitioner
+    this.bp = bp; //Broadphase data structure
 
-    this.actors = new ActorProcessor(this.em, this.sp);
-    this.containers = new ContainerProcessor(this.em, this.sp);
-    this.physics = new PhysicsProcessor(this.em, this.sp);
+    this.actors = new ActorProcessor(this.em, this.bp);
+    this.actors.on("playerDeploy", this.handlePlayerDeploy, this);
+
+    this.containers = new ContainerProcessor(this.em, this.bp);
+    this.physics = new PhysicsProcessor(this.em, this.bp);
 
     this.player = this.createActor(true);
 
@@ -32,7 +34,7 @@ function DynamicSystem(em, sp) {
         crate.addComponent(ColliderComponent).configure({
             shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
             flags: DynamicSystem.Usable,
-            broadphase: this.sp
+            broadphase: this.bp
         });
         crate.addComponent(ModelComponent).configure({
             model: window.asset.get("models/test/cube.oml"),
@@ -41,16 +43,6 @@ function DynamicSystem(em, sp) {
         crate.addComponent(DeployableComponent);
         crate.addComponent(DynamicComponent);
     }
-
-    this.cursor = this.em.createEntity();
-    this.cursor.addComponent(TransformComponent).configure({
-        position: vec3.fromValues(0.5, 0.5, 0.5)
-    });
-    this.cursor.addComponent(ModelComponent).configure({
-        model: window.asset.get("models/test/cube.oml"),
-        material: window.asset.get("materials/test/green.mtrl"),
-        visible: false
-    });
 }
 
 DynamicSystem.prototype = new SystemPrototype();
@@ -63,7 +55,7 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
     actor.addComponent(ColliderComponent).configure({
         shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
         flags: DynamicSystem.Character,
-        broadphase: this.sp
+        broadphase: this.bp
     });
     actor.addComponent(InputComponent).configure({
         driven: !!isPlayer
@@ -149,3 +141,8 @@ DynamicSystem.prototype.createGrid = function() {
 
 DynamicSystem.Character = ColliderComponent.addFlag();
 DynamicSystem.Usable = ColliderComponent.addFlag();
+DynamicSystem.Container = ColliderComponent.addFlag();
+
+DynamicSystem.prototype.handlePlayerDeploy = function(player, deployable) {
+    this.em.releaseEntity(deployable.entity);
+};

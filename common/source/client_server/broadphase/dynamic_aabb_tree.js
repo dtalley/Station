@@ -4,10 +4,12 @@ function DynamicAABBTree() {
 
 DynamicAABBTree.prototype.insert = function(collider) {
     this.colliders.add(collider);
+    collider.node = true;
 };
 
 DynamicAABBTree.prototype.remove = function(collider) {
     this.colliders.remove(collider);
+    collider.node = null;
 };
 
 DynamicAABBTree.prototype.update = function() {

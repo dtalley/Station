@@ -7,7 +7,7 @@ function ModelComponent() {
     this.visible = true;
 }
 
-ModelComponent.prototype = new ComponentPool(ModelComponent);
+ModelComponent.prototype = new ComponentPool(ModelComponent, "model");
 
 ModelComponent.prototype.onAttached = function() {
     this.entity.model = this;
