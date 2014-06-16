@@ -176,21 +176,19 @@ EventEmitter.prototype.EventRegistry = function(callback, owner) {
 };
 
 EventEmitter.prototype.getRegistry = function(callback, owner) {
-    if( this.registries.top > 0 )
-    {
-        var registry = this.registries.pop();
-        registry.cb = callback;
-        registry.o = owner;
-        return registory;
-    }
-    else
+    if( this.registries.top === 0 )
     {
         return new this.EventRegistry(callback, owner);
     }
+
+    var registry = this.registries.pop();
+    registry.cb = callback;
+    registry.o = owner;
+    return registry;
 };
 
 EventEmitter.prototype.on = function(event, callback, owner) {
-    if( !this.events[event] ) 
+    if( this.events[event] === undefined ) 
     {
         this.events[event] = {
             listeners:new ObjectRegistry()
@@ -201,9 +199,7 @@ EventEmitter.prototype.on = function(event, callback, owner) {
     this.events[event].listeners.add(registry);
 };
 
-EventEmitter.prototype.emit = function(event, arg1, arg2, arg3) {
-    if(!this.events) this.events = {};
-
+EventEmitter.prototype.emit = function(event, data) {
     if( !this.events[event] ) return;
 
     var listeners = this.events[event].listeners;
@@ -211,7 +207,7 @@ EventEmitter.prototype.emit = function(event, arg1, arg2, arg3) {
     for( var i = 0; i < count; i++ )
     {
         var listener = listeners.array[i];
-        listener.cb.call(listener.o, arg1, arg2, arg3);
+        listener.cb.call(listener.o, data);
     }
 };
 
@@ -224,7 +220,7 @@ EventEmitter.prototype.off = function(event, callbackOrOwner) {
     for( var i = 0; i < count; i++ )
     {
         var listener = listeners.array[i];
-        if( listener.cb === callbackOrOwner || listener.o === callbackOrOwner )
+        if( !callbackOrOwner || listener.cb === callbackOrOwner || listener.o === callbackOrOwner )
         {
             this.registries.push(listener);
             listeners.remove(listener);

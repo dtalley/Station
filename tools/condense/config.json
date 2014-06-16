@@ -120,9 +120,7 @@
                 "client/source/web/game/system/dynamic.js",
                 "client/source/web/game/system/input.js",
 
-                "client/source/web/game/system/processor/actor.js",
-                "client/source/web/game/system/processor/container.js",
-                "client/source/web/game/system/processor/physics.js"
+                "common/source/client_server/system/physics.js"
             ],
 
             "output": [

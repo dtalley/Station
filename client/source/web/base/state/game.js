@@ -35,6 +35,7 @@ GameState.prototype.onGameLoaded = function() {
     this.gameAssetBundle.add("materials/test/green.mtrl", true);
     this.gameAssetBundle.add("materials/test/blue.mtrl", true);
     this.gameAssetBundle.add("materials/test/gray.mtrl", true);
+    this.gameAssetBundle.add("materials/test/yellow.mtrl", true);
     this.gameAssetBundle.load(this.onBundleLoaded, this.onBundleProgress);
 };
 
@@ -43,11 +44,11 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 };
 
 GameState.prototype.onBundleLoaded = function() {
-    this.em = new EntityManager();
     this.bp = new DynamicAABBTree();
 
     this.renderer = new RenderSystem(this.bp);
-    this.dynamic = new DynamicSystem(this.em, this.bp);
+    this.dynamic = new DynamicSystem(this.bp);
+    this.physics = new PhysicsSystem(this.bp);
     this.input = new InputSystem();
     
     this.machine.onStateLoaded(this);
@@ -67,6 +68,7 @@ GameState.prototype.simulate = function() {
     if( this.visible )
     {
         this.input.update();
+        this.physics.update();
         this.dynamic.update();
     }
 };

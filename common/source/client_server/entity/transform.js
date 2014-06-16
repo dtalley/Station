@@ -6,11 +6,7 @@ function TransformComponent() {
     this.rotation = quat.identity(quat.create());
 
     this.parent = null;
-
-    this.indices = new RingBuffer();
-    this.children = [];
-    this.watchers = 0;
-    this.index = 0;
+    this.children = new ObjectRegistry();
 
     this.matrix = mat4.create();
     this.matrix.buffer.imbue();
@@ -23,33 +19,23 @@ TransformComponent.prototype.addChild = function(child) {
     if(child.parent===this) return;
 
     if(child.parent) child.parent.removeChild(child);
-
-    if(this.indices.span > 0)
-    {
-        var index = this.indices.shift();
-        this.children[index] = child;
-        child.index = index;
-    }
-    else
-    {
-        this.children.push(child);
-        child.index = this.children.length-1;
-    }
+    
+    this.children.add(child);
 
     child.parent = this;
-    child.update();
+    child.update(this);
 };
 
 TransformComponent.prototype.removeChild = function(child) {
     if(child.parent!==this) return;
 
-    this.indices.push(child.index);
-    this.children[child.index] = null;
+    this.children.remove(child);
     child.parent = null;
     child.update();
 };
 
 TransformComponent.prototype.setParent = function(parent) {
+    if(this.parent===parent) return;
     if(this.parent) this.parent.removeChild(this);
 
     if( parent ) parent.addChild(this);
@@ -81,28 +67,43 @@ TransformComponent.prototype.configure = function(options) {
     return this;
 };
 
-TransformComponent.prototype.update = function() {
-    mat4.fromRotationTranslation(this.matrix, this.rotation, this.position);
-    mat4.scale(this.matrix, this.matrix, this.scale);
+TransformComponent.prototype.update = function(start) {
+    if(start === this) return; //Transform loop, could throw error?
+
+    var matrix = this.matrix;
+
+    mat4.fromRotationTranslation(matrix, this.rotation, this.position);
+    mat4.scale(matrix, matrix, this.scale);
 
     if( this.parent )
     {
-        mat4.multiply(this.matrix, this.parent.matrix, this.matrix);
+        mat4.multiply(matrix, this.parent.matrix, matrix);
     }
 
+    var children = this.children.array;
     var count = this.children.length;
     for( var i = 0; i < count; i++ )
     {
-        if(this.children[i])
-        {
-            this.children[i].update();
-        }
+        children[i].update(start||this);
     }
 
-    if(this.watchers)
+    this.entity.emit("move");
+};
+
+TransformComponent.prototype.detach = function(transform) {
+    var parent = this.parent;
+    if(parent)
     {
-        this.emit("update", this);
+        parent.transformOther(this);
+        parent.removeChild(this);
     }
+};
+
+TransformComponent.prototype.transformOther = function(transform) {
+    var a = transform.position, b = transform.rotation, c = this.rotation;
+    vec4.transformQuat(a, a, c);
+    vec3.add(a, this.position, a);
+    quat.multiply(b, c, b);
 };
 
 TransformComponent.prototype.rotateUnitVector4 = function(vector) {

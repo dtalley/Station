@@ -34,3 +34,7 @@ ContainerComponent.prototype.configure = function(options) {
         while((options.size >>>= 1) !== 0) this.shift++;
     }
 };
+
+ContainerComponent.prototype.update = function() {
+
+};

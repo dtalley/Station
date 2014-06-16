@@ -14,6 +14,8 @@ function Entity(em, id) {
     this.props = {};
 }
 
+Entity.prototype = new EventEmitter();
+
 Entity.prototype.addComponent = function(component, flags) {
     var instance = component;
     if( typeof component === "function" )

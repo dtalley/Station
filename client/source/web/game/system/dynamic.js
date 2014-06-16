@@ -1,20 +1,16 @@
-function DynamicSystem(em, bp) {
+function DynamicSystem(bp) {
     SystemPrototype.call(this);
 
     this.dynamics = DynamicComponent.prototype.stack;
 
-    this.em = em; //Entity Manager
+    this.actors = ActorComponent.prototype.stack;
+    this.containers = ContainerComponent.prototype.stack;
+
     this.bp = bp; //Broadphase data structure
-
-    this.actors = new ActorProcessor(this.em, this.bp);
-    this.actors.on("playerDeploy", this.handlePlayerDeploy, this);
-
-    this.containers = new ContainerProcessor(this.em, this.bp);
-    this.physics = new PhysicsProcessor(this.em, this.bp);
 
     this.player = this.createActor(true);
 
-    this.camera = this.em.createEntity();
+    this.camera = window.em.createEntity();
     this.camera.addComponent(TransformComponent).configure({
         parent: this.player.getComponent(TransformComponent),
         position: vec3.fromValues(0, 40, 20),
@@ -26,7 +22,7 @@ function DynamicSystem(em, bp) {
 
     for( var i = 0; i < 4; i++ )
     {
-        var crate = this.em.createEntity();
+        var crate = window.em.createEntity();
         crate.addComponent(TransformComponent).configure({
             position: vec3.fromValues(4.5 + i, 0.5, 4.5),
             scale: vec3.fromValues(0.5, 0.5, 0.5)
@@ -41,14 +37,13 @@ function DynamicSystem(em, bp) {
             material: window.asset.get("materials/test/gray.mtrl")
         });
         crate.addComponent(DeployableComponent);
-        crate.addComponent(DynamicComponent);
     }
 }
 
 DynamicSystem.prototype = new SystemPrototype();
 
 DynamicSystem.prototype.createActor = function(isPlayer) {
-    var actor = this.em.createEntity();
+    var actor = window.em.createEntity();
     actor.addComponent(TransformComponent).configure({
         position: vec3.fromValues(0, 0.5, 0)
     });
@@ -65,28 +60,29 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
         material: window.asset.get("materials/test/red.mtrl")
     });
     actor.addComponent(ActorComponent).configure({
-        player: !!isPlayer
+        player: !!isPlayer,
+        broadphase: this.bp
     });
-    actor.addComponent(DynamicComponent);
 
     return actor;
 };
 
 DynamicSystem.prototype.update = function() {
-    var count = this.dynamics.length;
-    for( var i = 0; i < count; i++ )
+    var count = this.containers.length, i = 0;
+    for( i = 0; i < count; i++ )
     {
-        var dynamic = this.dynamics[i];
+        this.containers[i].update();
+    }  
 
-        if( dynamic.actor )
-        {
-            this.actors.process(dynamic.actor);
-        }
+    count = this.actors.length;
+    for( i = 0; i < count; i++ )
+    {
+        this.actors[i].update();
     }
 };
 
 DynamicSystem.prototype.createGrid = function() {
-    this.grid = this.em.createEntity();
+    this.grid = window.em.createEntity();
     this.grid.addComponent(TransformComponent).configure({});
     
     var model = new ModelAsset();
@@ -144,5 +140,19 @@ DynamicSystem.Usable = ColliderComponent.addFlag();
 DynamicSystem.Container = ColliderComponent.addFlag();
 
 DynamicSystem.prototype.handlePlayerDeploy = function(player, deployable) {
-    this.em.releaseEntity(deployable.entity);
+    var entity = deployable.entity, transform = entity.transform, dynamic = entity.components.dynamic;
+
+    transform.scale[0] = 1;
+    transform.scale[1] = 0.25;
+    transform.scale[2] = 1;
+    transform.detach();
+    transform.position[1] = 0.125;
+    transform.update();
+
+    entity.removeComponent(DeployableComponent);
+    dynamic.deployable = null;
+    entity.model.material = window.asset.get("materials/test/yellow.mtrl");
+    dynamic.container = entity.addComponent(ContainerComponent);
+    entity.collider.flags ^= DynamicSystem.Usable;
+    entity.collider.flags ^= DynamicSystem.Container;
 };

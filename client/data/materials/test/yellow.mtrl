@@ -1,0 +1,10 @@
+{
+    "passes": [
+        {
+            "program": {
+                "vertex": "shaders/test/test2.vert",
+                "fragment": "shaders/test/yellow.frag"
+            }
+        }
+    ]
+}

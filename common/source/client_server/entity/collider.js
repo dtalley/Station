@@ -14,16 +14,12 @@ ColliderComponent.prototype = new ComponentPool(ColliderComponent, "collider");
 
 ColliderComponent.prototype.onAttached = function() {
     this.entity.collider = this;
-    this.transform = this.entity.getComponent(TransformComponent);
-    this.transform.on("update", this.update, this);
-    this.transform.watchers++;
+    this.entity.on("move", this.onEntityMoved, this);
 };
 
 ColliderComponent.prototype.onDetached = function() {
     this.entity.collider = null;
-    this.transform.off("update", this.update);
-    this.transform.watchers--;
-    this.transform = null;
+    this.entity.off("move", this.onEntityMoved);
     
     if(this.node && this.broadphase)
     {
@@ -31,8 +27,8 @@ ColliderComponent.prototype.onDetached = function() {
     }
 };
 
-ColliderComponent.prototype.update = function() {
-    this.shape.calculateAABB(this.aabb, this.transform.matrix);
+ColliderComponent.prototype.onEntityMoved = function() {
+    this.shape.calculateAABB(this.aabb, this.entity.transform.matrix);
 
     if(!this.node && this.broadphase)
     {
@@ -49,7 +45,7 @@ ColliderComponent.prototype.configure = function(options) {
 
     if(options.broadphase) this.broadphase = options.broadphase;
 
-    this.update();
+    this.onEntityMoved();
 
     return this;
 };

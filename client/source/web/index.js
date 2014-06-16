@@ -107,6 +107,7 @@ Orionark.Application.prototype = {
         window.gr = new GraphicsManager(this.finish);
         window.asset = new AssetManager();
         window.ui = document.getElementById("ui");
+        window.em = new EntityManager();
 
         document.documentElement.webkitRequestFullScreen();
         document.documentElement.webkitRequestPointerLock();

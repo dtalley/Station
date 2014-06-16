@@ -19,14 +19,13 @@ CameraComponent.prototype = new ComponentPool(CameraComponent, "camera");
 
 CameraComponent.prototype.onAttached = function() {
     this.entity.camera = this;
-    this.transform = this.entity.getComponent(TransformComponent);
-    this.transform.on("update", this.update, this);
-    this.transform.watchers++;
-    this.update();
+    this.entity.on("move", this.onEntityMoved, this);
+    this.onEntityMoved();
 };
 
 CameraComponent.prototype.onDetached = function() {
     this.entity.camera = null;
+    this.entity.off("move", this.onEntityMoved);
 };
 
 CameraComponent.prototype.activate = function() {
@@ -35,12 +34,13 @@ CameraComponent.prototype.activate = function() {
     return this;
 };
 
-CameraComponent.prototype.update = function() {
-    mat4.invert(this.ci, this.entity.transform.matrix);
-    mat4.multiply(this.revert, this.entity.transform.matrix, this.pi);
-    this.position[0] = this.entity.transform.matrix[12];
-    this.position[1] = this.entity.transform.matrix[13];
-    this.position[2] = this.entity.transform.matrix[14];
+CameraComponent.prototype.onEntityMoved = function() {
+    var transform = this.entity.transform;
+    mat4.invert(this.ci, transform.matrix);
+    mat4.multiply(this.revert, transform.matrix, this.pi);
+    this.position[0] = transform.matrix[12];
+    this.position[1] = transform.matrix[13];
+    this.position[2] = transform.matrix[14];
     this.stale = 0xFFFFFF;
     return this;
 };
