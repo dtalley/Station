@@ -19,6 +19,10 @@ GameState.prototype.subLoad = function() {
 
     this.fragment.appendChild(this.holder);
 
+    this.loadBundle();
+};
+
+GameState.prototype.loadGame = function() {
     window.app.loadScript("game.js", this.onGameLoaded, this.onGameProgress);
 };
 
@@ -27,6 +31,10 @@ GameState.prototype.onGameProgress = function(loaded, total) {
 };
 
 GameState.prototype.onGameLoaded = function() {
+    this.onAllLoaded();
+};
+
+GameState.prototype.loadBundle = function() {
     this.gameAssetBundle = window.asset.createBundle();
     this.gameAssetBundle.add("models/test/cube.oml", true);
     this.gameAssetBundle.add("models/test/arrow.oml", true);
@@ -44,6 +52,10 @@ GameState.prototype.onBundleProgress = function(loaded, total) {
 };
 
 GameState.prototype.onBundleLoaded = function() {
+    this.loadGame();
+};
+
+GameState.prototype.onAllLoaded = function() {
     this.bp = new DynamicAABBTree();
 
     this.renderer = new RenderSystem(this.bp);

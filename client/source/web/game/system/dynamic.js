@@ -8,6 +8,9 @@ function DynamicSystem(bp) {
 
     this.bp = bp; //Broadphase data structure
 
+    this.ee = new EventEmitter();
+    this.ee.on("deploy", this.handleDeploy, this);
+
     this.player = this.createActor(true);
 
     this.camera = window.em.createEntity();
@@ -61,23 +64,33 @@ DynamicSystem.prototype.createActor = function(isPlayer) {
     });
     actor.addComponent(ActorComponent).configure({
         player: !!isPlayer,
-        broadphase: this.bp
+        broadphase: this.bp,
+        emitter: this.ee
     });
 
     return actor;
 };
 
 DynamicSystem.prototype.update = function() {
-    var count = this.containers.length, i = 0;
-    for( i = 0; i < count; i++ )
+    var count = 0, i = 0;
+    for( count = this.containers.length, i = 0; i < count; i++ )
     {
-        this.containers[i].update();
+        var container = this.containers[i];
+
+        if(container.entity)
+        {
+            container.update();
+        }
     }  
 
-    count = this.actors.length;
-    for( i = 0; i < count; i++ )
+    for( count = this.actors.length, i = 0; i < count; i++ )
     {
-        this.actors[i].update();
+        var actor = this.actors[i];
+
+        if(actor.entity)
+        {
+            actor.update();
+        }
     }
 };
 
@@ -139,7 +152,7 @@ DynamicSystem.Character = ColliderComponent.addFlag();
 DynamicSystem.Usable = ColliderComponent.addFlag();
 DynamicSystem.Container = ColliderComponent.addFlag();
 
-DynamicSystem.prototype.handlePlayerDeploy = function(player, deployable) {
+DynamicSystem.prototype.handleDeploy = function(deployable) {
     var entity = deployable.entity, transform = entity.transform, dynamic = entity.components.dynamic;
 
     transform.scale[0] = 1;
@@ -150,9 +163,8 @@ DynamicSystem.prototype.handlePlayerDeploy = function(player, deployable) {
     transform.update();
 
     entity.removeComponent(DeployableComponent);
-    dynamic.deployable = null;
     entity.model.material = window.asset.get("materials/test/yellow.mtrl");
-    dynamic.container = entity.addComponent(ContainerComponent);
+    entity.addComponent(ContainerComponent);
     entity.collider.flags ^= DynamicSystem.Usable;
     entity.collider.flags ^= DynamicSystem.Container;
 };

@@ -14,7 +14,7 @@ function ActorComponentShared() {
     this.cursor.addComponent(ModelComponent).configure({
         model: window.asset.get("models/test/cube.oml"),
         material: window.asset.get("materials/test/green.mtrl"),
-        visible: false
+        //visible: false
     });
 }
 
@@ -48,6 +48,7 @@ ActorComponent.prototype.configure = function(options) {
 
     this.player = !!options.player;
     this.broadphase = options.broadphase;
+    this.emitter = options.emitter;
 
     return this;
 };
@@ -108,17 +109,12 @@ ActorComponent.prototype.updatePlayer = function() {
         }
         else if( this.entity.input.mouse[0] && !this.using )
         {
-            var holding = this.holding;
+            this.emitter.emit("deploy", this.holding);
 
-            if( holding.deployable )
-            {
-                //this.emit("playerDeploy", this, this.holding.deployable);
-
-                this.holding = null;
-                this.using = true;
-                this.cursor.model.visible = false;
-                transform.removeChild(this.cursor.transform);       
-            }
+            this.holding = null;
+            this.using = true;
+            this.cursor.model.visible = false;
+            transform.removeChild(this.cursor.transform);       
         }
         else
         {
@@ -145,9 +141,11 @@ ActorComponent.prototype.handlePlayerContainerQueryResult = function(collider, e
         return;
     }
 
-    if( this.cursor.transform.parent !== collider.transform )
+    var colliderTransform = collider.entity.transform;
+
+    if( cursorTransform.parent !== colliderTransform )
     {
-        collider.transform.addChild(cursorTransform);
+        colliderTransform.addChild(cursorTransform);
     }
 };
 
@@ -195,6 +193,8 @@ ActorComponent.prototype.handlePlayerUsableQueryResult = function(collider, empt
                 this.cursor.transform.scale[1] = 0.25;
                 this.cursor.transform.scale[2] = 1;
                 this.cursor.transform.update();
+
+                console.log(this.cursor);
             }
 
             return false;
