@@ -1,14 +1,16 @@
-function RenderSystem(sp) {
+function RenderSystem(sm, em) {
+    this.sm = sm;
+    this.em = em;
+
     this.models = ModelComponent.prototype.stack;
     
     this.camera = null;
-    this.bp = null;
 }
 
 RenderSystem.prototype = new SystemPrototype("render", false, true);
 
-RenderSystem.prototype.configure = function(bp) {
-    this.bp = bp;
+RenderSystem.prototype.configure = function() {
+    
 };
 
 RenderSystem.prototype.initialize = function() {

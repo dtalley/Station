@@ -1,11 +1,12 @@
-function PhysicsSystem() {
-    this.bp = null;
+function PhysicsSystem(sm, em) {
+    this.sm = sm;
+    this.em = em;
 }
 
 PhysicsSystem.prototype = new SystemPrototype("physics", true, false);
 
 PhysicsSystem.prototype.configure = function(bp) {
-    this.bp = bp; //Broadphase data structure
+    
 };
 
 PhysicsSystem.prototype.initialize = function() {

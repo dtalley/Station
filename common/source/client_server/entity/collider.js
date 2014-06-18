@@ -4,8 +4,9 @@ function ColliderComponent() {
     this.aabb = new aabb();
 
     this.flags = 0;
+    this.node = null; //Broadphase node
 
-    this.node = null; //Broadphase container
+    this.emitter = this.constructor.prototype;
 }
 
 ColliderComponent.prototype = new ComponentPool(ColliderComponent, "collider");
@@ -18,30 +19,22 @@ ColliderComponent.prototype.onAttached = function() {
 ColliderComponent.prototype.onDetached = function() {
     this.entity.collider = null;
     this.entity.off("move", this.onEntityMoved);
-    
-    if(this.node && this.broadphase)
-    {
-        this.broadphase.remove(this);
-    }
+
+    this.emitter.emit("detach", this);
 };
 
 ColliderComponent.prototype.onEntityMoved = function(matrix) {
     this.shape.calculateAABB(this.aabb, matrix);
 
-    if(!this.node && this.broadphase)
-    {
-        this.broadphase.insert(this);
-    }
+    this.emitter.emit("update", this);
+    console.log("Collider update");
 };
 
 ColliderComponent.prototype.configure = function(options) {
     this.flags = 0;
-    this.broadphase = null;
 
     if(options.flags) this.flags = options.flags;
     if(options.shape) this.shape = options.shape;
-
-    if(options.broadphase) this.broadphase = options.broadphase;
 
     return this;
 };

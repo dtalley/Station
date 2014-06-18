@@ -1,13 +1,15 @@
 function SystemManager() {
-    this.systemReference = {};
+    this.em = new EntityManager();
+
+    this.reference = {};
     this.simulators = [];
     this.renderers = [];
+    this.systems = [];
 }
 
 SystemManager.prototype.addSystem = function(constructor) {
-    var system = new constructor();
-    system.manager = this;
-    console.log(system);
+    var system = new constructor(this, this.em);
+    
     if( system.isSimulator )
     {
         this.simulators.push(system);
@@ -18,25 +20,25 @@ SystemManager.prototype.addSystem = function(constructor) {
         this.renderers.push(system);
     }
 
-    console.log(this);
+    this.systems.push(system);
 
-    this.systemReference[system.type] = system;
+    this.reference[system.type] = system;
     return system;
 };
 
 SystemManager.prototype.getSystem = function(constructor) {
     var type = constructor.prototype.type;
 
-    if( this.systemReference[type] )
+    if( this.reference[type] )
     {
-        return this.systemReference[type];
+        return this.reference[type];
     }
 
     return null;
 };
 
 SystemManager.prototype.initialize = function() {
-    var index = this.simulators;
+    var index = this.systems;
     var count = index.length;
     for( var i = 0; i < count; i++ )
     {

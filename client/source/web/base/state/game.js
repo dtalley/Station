@@ -56,14 +56,23 @@ GameState.prototype.onBundleLoaded = function() {
 };
 
 GameState.prototype.onAllLoaded = function() {
-    this.bp = new DynamicAABBTree();
-    this.em = new EntityManager();
     this.sm = new SystemManager();
 
+    this.sm.addSystem(CollisionSystem).configure({
+        broadphase: CollisionSystem.DynamicAABBTree
+    });
+
+    //Simulation systems
     this.sm.addSystem(InputSystem);
-    this.sm.addSystem(PhysicsSystem).configure(this.bp);
-    this.sm.addSystem(ActorSystem).configure(this.em, this.bp);
-    this.sm.addSystem(RenderSystem).configure(this.bp);
+    this.sm.addSystem(PhysicsSystem);
+    this.sm.addSystem(ContainerSystem);
+    this.sm.addSystem(ActorSystem);
+
+    //Rendering systems
+    this.sm.addSystem(RenderSystem);
+
+    //Utility systems
+    this.sm.addSystem(UseableSystem);
 
     this.sm.initialize();
     

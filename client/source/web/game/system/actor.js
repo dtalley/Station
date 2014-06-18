@@ -1,4 +1,7 @@
-function ActorSystem(bp) {
+function ActorSystem(sm, em) {
+    this.sm = sm;
+    this.em = em;
+
     this.actors = ActorComponent.prototype.stack;
 
     this.movement = vec4.fromValues(0, 0, 0, 1);
@@ -9,9 +12,8 @@ function ActorSystem(bp) {
 
 ActorSystem.prototype = new SystemPrototype("actor", true, false);
 
-ActorSystem.prototype.configure = function(em, bp) {
-    this.em = em; //Entity manager
-    this.bp = bp; //Broadphase data structure
+ActorSystem.prototype.configure = function() {
+    
 };
 
 ActorSystem.prototype.initialize = function() {
@@ -47,8 +49,7 @@ ActorSystem.prototype.initialize = function() {
         var crate = this.em.createEntity();
         crate.addComponent(ColliderComponent).configure({
             shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
-            flags: ActorSystem.Usable,
-            broadphase: this.bp
+            flags: ActorSystem.Usable
         });
         crate.addComponent(ModelComponent).configure({
             model: window.asset.get("models/test/cube.oml"),
@@ -60,14 +61,17 @@ ActorSystem.prototype.initialize = function() {
             scale: vec3.fromValues(0.5, 0.5, 0.5)
         });
     }
+
+    this.container = this.sm.getSystem(ContainerSystem);
+    this.useable = this.sm.getSystem(UseableSystem);
+    this.collision = this.sm.getSystem(CollisionSystem);
 };
 
 ActorSystem.prototype.createActor = function(isPlayer) {
     var actor = this.em.createEntity();
     actor.addComponent(ColliderComponent).configure({
         shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
-        flags: ActorSystem.Character,
-        broadphase: this.bp
+        flags: ActorSystem.Character
     });
     actor.addComponent(InputComponent).configure({
         driven: !!isPlayer
@@ -77,9 +81,7 @@ ActorSystem.prototype.createActor = function(isPlayer) {
         material: window.asset.get("materials/test/red.mtrl")
     });
     actor.addComponent(ActorComponent).configure({
-        player: !!isPlayer,
-        broadphase: this.bp,
-        emitter: this.ee
+        player: !!isPlayer
     });
     actor.addComponent(TransformComponent).configure({
         position: vec3.fromValues(0, 0.5, 0)
@@ -191,7 +193,7 @@ ActorSystem.prototype.updatePlayer = function(player) {
     if( player.holding )
     {
         this.deployShape.calculateAABB(this.queryAABB, transform.matrix);
-        this.bp.query(this.queryAABB, ActorSystem.Container, this.handlePlayerContainerQueryResult, this, player);
+        this.collision.broadphase.query(this.queryAABB, ActorSystem.Container, this.handlePlayerContainerQueryResult, this, player);
 
         if( player.entity.input.actions[0] && !player.using )
         {
@@ -220,7 +222,7 @@ ActorSystem.prototype.updatePlayer = function(player) {
     }
 
     this.grabShape.calculateAABB(this.queryAABB, transform.matrix);
-    this.bp.query(this.queryAABB, ActorSystem.Usable, this.handlePlayerUsableQueryResult, this, player);
+    this.collision.broadphase.query(this.queryAABB, ActorSystem.Usable, this.handlePlayerUsableQueryResult, this, player);
 };
 
 ActorSystem.prototype.handlePlayerContainerQueryResult = function(empty, collider, player) {
@@ -247,7 +249,6 @@ ActorSystem.prototype.handlePlayerContainerQueryResult = function(empty, collide
 };
 
 ActorSystem.prototype.handlePlayerUsableQueryResult = function(empty, collider, player) {
-    console.log(empty);
     if( empty )
     {
         if( player.targeting )

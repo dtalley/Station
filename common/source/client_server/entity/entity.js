@@ -127,6 +127,8 @@ ComponentPrototype.prototype.configure = function(options){
 };
 
 function ComponentPool(constructor, type) {
+    EventEmitter.call(this);
+
     this.entity = null;
     this.pool = [];
     this.stack = [];
