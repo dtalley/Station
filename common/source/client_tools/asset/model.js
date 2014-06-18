@@ -46,13 +46,14 @@ ModelAsset.prototype.subProcess = function() {
 };
 
 ModelAsset.prototype.createBuffers = function() {
+    var graphics = window.graphics;
     if( this.vertices )
     {
-        this.vertexBuffer = window.gr.createVertexBuffer(this.vertices, this.attributes);
+        this.vertexBuffer = graphics.createVertexBuffer(this.vertices, this.attributes);
     }
 
     if( this.indices )
     {
-        this.indexBuffer = window.gr.createIndexBuffer(this.indices, this.drawType || window.gr.Triangles);
+        this.indexBuffer = graphics.createIndexBuffer(this.indices, this.drawType || graphics.Triangles);
     }
 };

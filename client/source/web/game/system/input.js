@@ -1,6 +1,4 @@
 function InputSystem() {
-    SystemPrototype.call(this);
-    
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
@@ -29,11 +27,18 @@ function InputSystem() {
     this.skipMovement = 0;
 }
 
-InputSystem.prototype = new SystemPrototype();
+InputSystem.prototype = new SystemPrototype("input", true, false);
 
-InputSystem.prototype.update = function() {
-    var count = this.stack.length;
-    for( var i = 0; i < count; i++ )
+InputSystem.prototype.configure = function() {
+
+};
+
+InputSystem.prototype.initialize = function() {
+
+};
+
+InputSystem.prototype.simulate = function() {
+    for( var count = this.stack.length, i = 0; i < count; i++ )
     {
         var c = this.stack[i];
         if(c.entity && c.driven)

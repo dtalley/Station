@@ -1,11 +1,17 @@
-function PhysicsSystem(bp) {
-    SystemPrototype.call(this);
-
-    this.bp = bp; //Broadphase data structure
+function PhysicsSystem() {
+    this.bp = null;
 }
 
-PhysicsSystem.prototype = new SystemPrototype();
+PhysicsSystem.prototype = new SystemPrototype("physics", true, false);
 
-PhysicsSystem.prototype.update = function() {
+PhysicsSystem.prototype.configure = function(bp) {
+    this.bp = bp; //Broadphase data structure
+};
+
+PhysicsSystem.prototype.initialize = function() {
+
+};
+
+PhysicsSystem.prototype.simulate = function() {
     
 };

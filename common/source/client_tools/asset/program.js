@@ -38,11 +38,11 @@ ProgramAsset.prototype.createProgram = function() {
     {
         return;
     }
-
+    
     this.contents.fragment.off("processed", this);
     this.contents.vertex.off("processed", this);
 
-    this.program = window.gr.createProgram(this.contents.vertex, this.contents.fragment);
+    this.program = window.graphics.createProgram(this.contents.vertex, this.contents.fragment);
 
     this.onProcessed();
 };
@@ -50,6 +50,6 @@ ProgramAsset.prototype.createProgram = function() {
 ProgramAsset.prototype.bind = function() {
     if( this.program )
     {
-        window.gr.useProgram(this);
+        window.graphics.useProgram(this);
     }
 };

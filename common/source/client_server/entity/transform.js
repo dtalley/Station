@@ -87,7 +87,7 @@ TransformComponent.prototype.update = function(start) {
         children[i].update(start||this);
     }
 
-    this.entity.emit("move");
+    this.entity.emit("move", matrix);
 };
 
 TransformComponent.prototype.detach = function(transform) {

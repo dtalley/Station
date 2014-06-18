@@ -57,11 +57,15 @@ GameState.prototype.onBundleLoaded = function() {
 
 GameState.prototype.onAllLoaded = function() {
     this.bp = new DynamicAABBTree();
+    this.em = new EntityManager();
+    this.sm = new SystemManager();
 
-    this.renderer = new RenderSystem(this.bp);
-    this.dynamic = new DynamicSystem(this.bp);
-    this.physics = new PhysicsSystem(this.bp);
-    this.input = new InputSystem();
+    this.sm.addSystem(InputSystem);
+    this.sm.addSystem(PhysicsSystem).configure(this.bp);
+    this.sm.addSystem(ActorSystem).configure(this.em, this.bp);
+    this.sm.addSystem(RenderSystem).configure(this.bp);
+
+    this.sm.initialize();
     
     this.machine.onStateLoaded(this);
 };
@@ -79,16 +83,14 @@ GameState.prototype.subDestroy = function() {
 GameState.prototype.simulate = function() {
     if( this.visible )
     {
-        this.input.update();
-        this.physics.update();
-        this.dynamic.update();
+        this.sm.simulate();
     }
 };
 
 GameState.prototype.render = function() {
     if( this.visible )
     {
-        this.renderer.update();
+        this.sm.render();
     }
 };
 

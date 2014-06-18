@@ -12,10 +12,6 @@ ContainerComponent = function(flags) {
 
 ContainerComponent.prototype = new ComponentPool(ContainerComponent, "container");
 
-ContainerComponent.prototype.storeChunk = function(entity) {
-
-};
-
 ContainerComponent.prototype.onAttached = function() {
     
 };
@@ -33,8 +29,4 @@ ContainerComponent.prototype.configure = function(options) {
         this.shift = 0;
         while((options.size >>>= 1) !== 0) this.shift++;
     }
-};
-
-ContainerComponent.prototype.update = function() {
-
 };

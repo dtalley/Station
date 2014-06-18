@@ -104,10 +104,9 @@ Orionark.Application.prototype = {
     },
 
     onBaseLoaded: function() {
-        window.gr = new GraphicsManager(this.finish);
+        window.graphics = new GraphicsManager(this.finish);
         window.asset = new AssetManager();
         window.ui = document.getElementById("ui");
-        window.em = new EntityManager();
 
         document.documentElement.webkitRequestFullScreen();
         document.documentElement.webkitRequestPointerLock();
@@ -159,11 +158,12 @@ Orionark.Application.prototype = {
     },
 
     render: function() {
-        window.gr.startFrame();
+        var graphics = window.graphics;
+        graphics.startFrame();
         //console.time("onk_gather");
         this.machine.render();
         //console.timeEnd("onk_gather");
-        window.gr.endFrame();
+        graphics.endFrame();
     },
 
     finish: function() {
@@ -175,7 +175,7 @@ Orionark.Application.prototype = {
     },
 
     onWindowResized: function() {
-        window.gr.resize(window.innerWidth, window.innerHeight);
+        window.graphics.resize(window.innerWidth, window.innerHeight);
     }
 };
 

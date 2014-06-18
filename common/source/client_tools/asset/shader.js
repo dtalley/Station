@@ -12,6 +12,8 @@ function ShaderAsset() {
 ShaderAsset.prototype = new AssetPrototype();
 
 ShaderAsset.prototype.subProcess = function() {
+    var graphics = window.graphics;
+
     var contents = this.readText(this.data).replace(/\r\n/g, "\n");
 
     var source = contents;
@@ -26,11 +28,11 @@ ShaderAsset.prototype.subProcess = function() {
     
     if( this.ext === "vert" )
     {
-        this.shader = window.gr.createShader(source, window.gr.VertexShader);
+        this.shader = graphics.createShader(source, graphics.VertexShader);
     }
     else if( this.ext === "frag" )
     {
-        this.shader = window.gr.createShader(source, window.gr.FragmentShader);
+        this.shader = graphics.createShader(source, graphics.FragmentShader);
     }
 
     this.onProcessed();

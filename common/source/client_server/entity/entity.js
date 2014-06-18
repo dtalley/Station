@@ -1,4 +1,6 @@
 function Entity(em, id) {
+    EventEmitter.call(this);
+    
     this.em = em;
     this.id = id;
     this.components = {};

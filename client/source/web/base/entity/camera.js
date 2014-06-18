@@ -3,7 +3,7 @@ function CameraComponent() {
 
     this.ci = mat4.create();
     this.perspective = mat4.create();
-    mat4.perspective(this.perspective, 13 * Math.PI / 180, window.gr.width / window.gr.height, 0.1, 1000.0);
+    mat4.perspective(this.perspective, 13 * Math.PI / 180, window.graphics.width / window.graphics.height, 0.1, 1000.0);
     this.revert = mat4.create();
     this.pi = mat4.create();
     mat4.invert(this.pi, this.perspective);
@@ -20,7 +20,6 @@ CameraComponent.prototype = new ComponentPool(CameraComponent, "camera");
 CameraComponent.prototype.onAttached = function() {
     this.entity.camera = this;
     this.entity.on("move", this.onEntityMoved, this);
-    this.onEntityMoved();
 };
 
 CameraComponent.prototype.onDetached = function() {
@@ -34,13 +33,12 @@ CameraComponent.prototype.activate = function() {
     return this;
 };
 
-CameraComponent.prototype.onEntityMoved = function() {
-    var transform = this.entity.transform;
-    mat4.invert(this.ci, transform.matrix);
-    mat4.multiply(this.revert, transform.matrix, this.pi);
-    this.position[0] = transform.matrix[12];
-    this.position[1] = transform.matrix[13];
-    this.position[2] = transform.matrix[14];
+CameraComponent.prototype.onEntityMoved = function(matrix) {
+    mat4.invert(this.ci, matrix);
+    mat4.multiply(this.revert, matrix, this.pi);
+    this.position[0] = matrix[12];
+    this.position[1] = matrix[13];
+    this.position[2] = matrix[14];
     this.stale = 0xFFFFFF;
     return this;
 };

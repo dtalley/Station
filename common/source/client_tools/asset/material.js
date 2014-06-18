@@ -49,7 +49,7 @@ MaterialAsset.prototype.subProcess = function() {
 
         if( info.program )
         {
-            newPass.program = window.gr.createProgram(vertex, fragment);
+            newPass.program = window.graphics.createProgram(vertex, fragment);
         }
 
         this.passes.push(newPass);
@@ -66,9 +66,9 @@ MaterialAsset.prototype.bind = function(index) {
     }
 
     var pass = this.passes[index];
-    if( pass.program && window.gr.program !== pass.program )
+    if( pass.program && window.graphics.program !== pass.program )
     {
-        window.gr.useProgram(pass.program);
+        window.graphics.useProgram(pass.program);
         return true;
     }
 

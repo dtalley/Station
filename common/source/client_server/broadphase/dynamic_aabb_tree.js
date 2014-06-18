@@ -16,7 +16,7 @@ DynamicAABBTree.prototype.update = function() {
 
 };
 
-DynamicAABBTree.prototype.query = function(aabb, flags, callback, owner) {
+DynamicAABBTree.prototype.query = function(aabb, flags, callback, owner, context) {
     if(!callback) return;
 
     var r = 0;
@@ -28,12 +28,12 @@ DynamicAABBTree.prototype.query = function(aabb, flags, callback, owner) {
         if( ( !flags || ( flags & collider.flags ) > 0 ) && collider.aabb.intersects(aabb) )
         {
             r++;
-            next = callback.call(owner, collider);
+            next = callback.call(owner, false, collider, context);
         }
     }
 
     if( r === 0 )
     {
-        callback.call(owner, null, true);
+        callback.call(owner, true, null, context);
     }
 };
