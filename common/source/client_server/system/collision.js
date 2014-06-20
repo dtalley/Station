@@ -19,7 +19,6 @@ CollisionSystem.prototype.configure = function(options) {
 };
 
 CollisionSystem.prototype.initialize = function() {
-    console.log("CollisionSystem initialize");
     ColliderComponent.prototype.on("update", this.handleColliderUpdate, this);
     ColliderComponent.prototype.on("detach", this.handleColliderDetach, this);
 };

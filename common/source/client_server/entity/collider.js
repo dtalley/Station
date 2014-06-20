@@ -27,7 +27,6 @@ ColliderComponent.prototype.onEntityMoved = function(matrix) {
     this.shape.calculateAABB(this.aabb, matrix);
 
     this.emitter.emit("update", this);
-    console.log("Collider update");
 };
 
 ColliderComponent.prototype.configure = function(options) {
@@ -37,6 +36,15 @@ ColliderComponent.prototype.configure = function(options) {
     if(options.shape) this.shape = options.shape;
 
     return this;
+};
+
+ColliderComponent.prototype.removeFlags = function(flags) {
+    var mask = 0x7FFFFFFF ^ flags;
+    this.flags &= mask;
+};
+
+ColliderComponent.prototype.addFlags = function(flags) {
+    this.flags |= flags;
 };
 
 ColliderComponent.CollisionShape = function() {

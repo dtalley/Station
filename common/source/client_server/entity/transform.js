@@ -90,7 +90,7 @@ TransformComponent.prototype.update = function(start) {
     this.entity.emit("move", matrix);
 };
 
-TransformComponent.prototype.detach = function(transform) {
+TransformComponent.prototype.orphan = function(transform) {
     var parent = this.parent;
     if(parent)
     {

@@ -114,15 +114,17 @@
                 "client/source/web/game/entity/container.js",
                 "client/source/web/game/entity/input.js",
                 "client/source/web/game/entity/actor.js",
-                "client/source/web/game/entity/deployable.js",
+                "client/source/web/game/entity/item.js",
 
                 "client/source/web/game/system/actor.js",
                 "client/source/web/game/system/input.js",
-                "client/source/web/game/system/useable.js",
+                "client/source/web/game/system/item.js",
                 "client/source/web/game/system/container.js",
 
                 "common/source/client_server/system/physics.js",
-                "common/source/client_server/system/collision.js"
+                "common/source/client_server/system/collision.js",
+
+                "client/source/web/game/stub/database.js"
             ],
 
             "output": [

@@ -16,3 +16,5 @@ ContainerSystem.prototype.initialize = function() {
 ContainerSystem.prototype.simulate = function() {
 
 };
+
+ColliderComponent.Flags.Container = ColliderComponent.addFlag();

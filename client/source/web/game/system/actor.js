@@ -5,9 +5,6 @@ function ActorSystem(sm, em) {
     this.actors = ActorComponent.prototype.stack;
 
     this.movement = vec4.fromValues(0, 0, 0, 1);
-    this.result = vec4.fromValues(0, 0, 0, 1);
-
-    this.bp = null;
 }
 
 ActorSystem.prototype = new SystemPrototype("actor", true, false);
@@ -17,20 +14,12 @@ ActorSystem.prototype.configure = function() {
 };
 
 ActorSystem.prototype.initialize = function() {
+    this.container = this.sm.getSystem(ContainerSystem);
+    this.item = this.sm.getSystem(ItemSystem);
+    this.collision = this.sm.getSystem(CollisionSystem);
+
     this.grabShape = new ColliderComponent.Sphere(0, 0, -1, 0, 0, -0.1, Math.PI / 2);
-    this.deployShape = new ColliderComponent.Box(0, 0, -1, 0.5, 0.5, 0.5);
-
     this.queryAABB = new aabb();
-
-    this.cursor = this.em.createEntity();
-    this.cursor.addComponent(TransformComponent).configure({
-        position: vec3.fromValues(0.5, 0.5, 0.5)
-    });
-    this.cursor.addComponent(ModelComponent).configure({
-        model: window.asset.get("models/test/cube.oml"),
-        material: window.asset.get("materials/test/green.mtrl"),
-        visible: false
-    });
 
     this.player = this.createActor(true);
 
@@ -43,37 +32,15 @@ ActorSystem.prototype.initialize = function() {
     });
 
     this.createGrid();
-
-    for( var i = 0; i < 4; i++ )
-    {
-        var crate = this.em.createEntity();
-        crate.addComponent(ColliderComponent).configure({
-            shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
-            flags: ActorSystem.Usable
-        });
-        crate.addComponent(ModelComponent).configure({
-            model: window.asset.get("models/test/cube.oml"),
-            material: window.asset.get("materials/test/gray.mtrl")
-        });
-        crate.addComponent(DeployableComponent);
-        crate.addComponent(TransformComponent).configure({
-            position: vec3.fromValues(4.5 + i, 0.5, 4.5),
-            scale: vec3.fromValues(0.5, 0.5, 0.5)
-        });
-    }
-
-    this.container = this.sm.getSystem(ContainerSystem);
-    this.useable = this.sm.getSystem(UseableSystem);
-    this.collision = this.sm.getSystem(CollisionSystem);
 };
 
 ActorSystem.prototype.createActor = function(isPlayer) {
     var actor = this.em.createEntity();
     actor.addComponent(ColliderComponent).configure({
         shape: new ColliderComponent.Box(0, 0, 0, 0.5, 0.5, 0.5),
-        flags: ActorSystem.Character
+        flags: ColliderComponent.Flags.Character
     });
-    actor.addComponent(InputComponent).configure({
+    actor.addComponent(InputComponent).configure({ 
         driven: !!isPlayer
     });
     actor.addComponent(ModelComponent).configure({
@@ -180,130 +147,49 @@ ActorSystem.prototype.simulate = function() {
 };
 
 ActorSystem.prototype.updatePlayer = function(player) {
-    if( player.using )
+    if( player.busy )
     {
         if(!player.entity.input.actions[0])
         {
-            player.using = false;
+            player.busy = false;
         }
     }
 
-    var transform = player.entity.transform;
-
-    if( player.holding )
-    {
-        this.deployShape.calculateAABB(this.queryAABB, transform.matrix);
-        this.collision.broadphase.query(this.queryAABB, ActorSystem.Container, this.handlePlayerContainerQueryResult, this, player);
-
-        if( player.entity.input.actions[0] && !player.using )
-        {
-            var holdingTransform = player.holding.entity.transform;
-
-            player.holding.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-            holdingTransform.detach();
-            player.holding = null;
-            player.using = true;
-            this.cursor.model.visible = false;
-            transform.removeChild(this.cursor.transform);
-        }
-        else if( player.entity.input.mouse[0] && !player.using )
-        {
-            this.handleDeploy(player.holding);
-
-            player.holding = null;
-            player.using = true;
-            this.cursor.model.visible = false;
-            transform.removeChild(this.cursor.transform);       
-        }
-        else
-        {
-            return;
-        }
-    }
-
-    this.grabShape.calculateAABB(this.queryAABB, transform.matrix);
-    this.collision.broadphase.query(this.queryAABB, ActorSystem.Usable, this.handlePlayerUsableQueryResult, this, player);
-};
-
-ActorSystem.prototype.handlePlayerContainerQueryResult = function(empty, collider, player) {
-    var transform = player.entity.transform, cursorTransform = this.cursor.transform;
-
-    if( empty )
-    {
-        if( this.cursor.transform.parent !== transform )
-        {
-            transform.addChild(cursorTransform);
-            cursorTransform.position[0] = 0;
-            cursorTransform.position[1] = -0.375;
-            cursorTransform.position[2] = -1;
-        }
-        return;
-    }
-
-    var colliderTransform = collider.entity.transform;
-
-    if( cursorTransform.parent !== colliderTransform )
-    {
-        colliderTransform.addChild(cursorTransform);
-    }
+    this.grabShape.calculateAABB(this.queryAABB, player.entity.transform.matrix);
+    this.collision.broadphase.query(this.queryAABB, ColliderComponent.Flags.Useable, this.handlePlayerUsableQueryResult, this, player);
 };
 
 ActorSystem.prototype.handlePlayerUsableQueryResult = function(empty, collider, player) {
     if( empty )
     {
-        if( player.targeting )
+        this.item.stopActorTarget(player);
+
+        if(player.holding && player.entity.input.actions[0] && !player.busy)
         {
-            player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-            player.targeting = null;
+            this.item.startActorUse(player, player.holding);
+            player.busy = true;
         }
+
         return;
     }
 
-    var deployable = collider.entity.getComponent(DeployableComponent);
+    var item = collider.entity.getComponent(ItemComponent);
 
-    if( deployable )
+    if( item )
     {
-        var dynamicTransform = deployable.entity.transform;
-
-        if(player.targeting === deployable)
+        if(player.targeting === item)
         {
-            if(player.entity.input.actions[0] && !player.using)
+            if(player.entity.input.actions[0] && !player.busy)
             {
-                player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-                player.targeting = null;       
-
-                player.holding = deployable;
-                player.holding.entity.model.material = window.asset.get("materials/test/blue.mtrl");
-
-                dynamicTransform.position[0] = 0;
-                dynamicTransform.position[1] = 0;
-                dynamicTransform.position[2] = -0.8;
-                quat.identity(dynamicTransform.rotation, dynamicTransform.rotation);
-                player.entity.transform.addChild(dynamicTransform);
-
-                player.using = true;
-
-                this.cursor.model.visible = true;
-                player.entity.transform.addChild(this.cursor.transform);
-                this.cursor.transform.position[0] = 0;
-                this.cursor.transform.position[1] = -0.375;
-                this.cursor.transform.position[2] = -1;
-                this.cursor.transform.scale[0] = 1;
-                this.cursor.transform.scale[1] = 0.25;
-                this.cursor.transform.scale[2] = 1;
-                this.cursor.transform.update();
+                this.item.startActorUse(player, item);
+                player.busy = true;
             }
 
             return false;
         }
-        else if(player.targeting)
-        {
-            player.targeting.entity.model.material = window.asset.get("materials/test/gray.mtrl");
-            player.targeting = null;
-        }
 
-        player.targeting = deployable;
-        player.targeting.entity.model.material = window.asset.get("materials/test/green.mtrl");
+        this.item.stopActorTarget(player);
+        this.item.startActorTarget(player, item);
 
         return false;
     }
@@ -317,7 +203,7 @@ ActorSystem.prototype.handleDeploy = function(deployable) {
     transform.scale[0] = 1;
     transform.scale[1] = 0.25;
     transform.scale[2] = 1;
-    transform.detach();
+    transform.orphan();
     transform.position[1] = 0.125;
     transform.update();
 
@@ -328,6 +214,4 @@ ActorSystem.prototype.handleDeploy = function(deployable) {
     entity.collider.flags ^= ActorSystem.Container;
 };
 
-ActorSystem.Character = ColliderComponent.addFlag();
-ActorSystem.Usable = ColliderComponent.addFlag();
-ActorSystem.Container = ColliderComponent.addFlag();
+ColliderComponent.Flags.Character = ColliderComponent.addFlag();

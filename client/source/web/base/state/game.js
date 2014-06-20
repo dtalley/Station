@@ -72,7 +72,7 @@ GameState.prototype.onAllLoaded = function() {
     this.sm.addSystem(RenderSystem);
 
     //Utility systems
-    this.sm.addSystem(UseableSystem);
+    this.sm.addSystem(ItemSystem);
 
     this.sm.initialize();
     
