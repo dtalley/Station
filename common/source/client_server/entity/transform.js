@@ -42,6 +42,10 @@ TransformComponent.prototype.setParent = function(parent) {
 };
 
 TransformComponent.prototype.onAttached = function() {
+    vec3.zero(this.position);
+    quat.identity(this.rotation);
+    vec3.one(this.scale);
+
     this.entity.transform = this;
     this.update();
 };
@@ -52,6 +56,11 @@ TransformComponent.prototype.onDetached = function() {
     if( this.parent )
     {
         this.parent.removeChild(this);
+    }
+
+    if(this.children.length > 0)
+    {
+        throw new Error("TransformComponent detached with children.");
     }
 };
 
@@ -104,6 +113,11 @@ TransformComponent.prototype.transformOther = function(transform) {
     vec4.transformQuat(a, a, c);
     vec3.add(a, this.position, a);
     quat.multiply(b, c, b);
+};
+
+TransformComponent.prototype.rotateOther = function(transform) {
+    var a = transform.rotation, b = this.rotation;
+    quat.multiply(a, b, a);
 };
 
 TransformComponent.prototype.rotateUnitVector4 = function(vector) {

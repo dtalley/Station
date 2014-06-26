@@ -145,8 +145,11 @@ ObjectRegistry.prototype.add = function(object) {
     this.length++;
 };
 
-ObjectRegistry.prototype.remove = function(object) {
-    var index = this.array.indexOf(object);
+ObjectRegistry.prototype.remove = function(object, index) {
+    if(index === undefined)
+    {
+        index = this.array.indexOf(object);
+    }
 
     if( index >= 0 )
     {

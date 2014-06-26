@@ -6,7 +6,7 @@ function ActorComponent() {
     ComponentPrototype.call(this);
 
     this.player = false;
-    this.busy = false;
+    this.using = false;
 
     this.holding = null;
     this.targeting = null;

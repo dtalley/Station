@@ -1,5 +1,11 @@
 function ItemComponent() {
     ComponentPrototype.call(this);
+
+    this.owner = null;
+    
+    this.timer = 0.0;
+
+    this.deploying = false;
 }
 
 ItemComponent.prototype = new ComponentPool(ItemComponent, "item");

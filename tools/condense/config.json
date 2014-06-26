@@ -112,6 +112,7 @@
         {
             "input": [
                 "client/source/web/game/entity/container.js",
+                "client/source/web/game/entity/chunk_floor.js",
                 "client/source/web/game/entity/input.js",
                 "client/source/web/game/entity/actor.js",
                 "client/source/web/game/entity/item.js",

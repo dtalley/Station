@@ -18,7 +18,7 @@ ActorSystem.prototype.initialize = function() {
     this.item = this.sm.getSystem(ItemSystem);
     this.collision = this.sm.getSystem(CollisionSystem);
 
-    this.grabShape = new ColliderComponent.Sphere(0, 0, -1, 0, 0, -0.1, Math.PI / 2);
+    this.grabShape = new ColliderComponent.Sphere(0, 0.5, -1, 0, 0, -0.1, Math.PI / 2);
     this.queryAABB = new aabb();
 
     this.player = this.createActor(true);
@@ -51,7 +51,7 @@ ActorSystem.prototype.createActor = function(isPlayer) {
         player: !!isPlayer
     });
     actor.addComponent(TransformComponent).configure({
-        position: vec3.fromValues(0, 0.5, 0)
+        position: vec3.fromValues(0, 0, 0)
     });
 
     return actor;
@@ -147,12 +147,9 @@ ActorSystem.prototype.simulate = function() {
 };
 
 ActorSystem.prototype.updatePlayer = function(player) {
-    if( player.busy )
+    if( player.using && !player.entity.input.actions[0] )
     {
-        if(!player.entity.input.actions[0])
-        {
-            player.busy = false;
-        }
+        player.using = false;
     }
 
     this.grabShape.calculateAABB(this.queryAABB, player.entity.transform.matrix);
@@ -164,25 +161,25 @@ ActorSystem.prototype.handlePlayerUsableQueryResult = function(empty, collider, 
     {
         this.item.stopActorTarget(player);
 
-        if(player.holding && player.entity.input.actions[0] && !player.busy)
+        if(player.holding && player.entity.input.actions[0] && !player.using)
         {
             this.item.startActorUse(player, player.holding);
-            player.busy = true;
+            player.using = true;
         }
 
         return;
     }
 
-    var item = collider.entity.getComponent(ItemComponent);
+    var item = collider.entity.components.item;
 
     if( item )
     {
         if(player.targeting === item)
         {
-            if(player.entity.input.actions[0] && !player.busy)
+            if(player.entity.input.actions[0] && !player.using)
             {
                 this.item.startActorUse(player, item);
-                player.busy = true;
+                player.using = true;
             }
 
             return false;
@@ -195,23 +192,6 @@ ActorSystem.prototype.handlePlayerUsableQueryResult = function(empty, collider, 
     }
 
     return true;
-};
-
-ActorSystem.prototype.handleDeploy = function(deployable) {
-    var entity = deployable.entity, transform = entity.transform;
-
-    transform.scale[0] = 1;
-    transform.scale[1] = 0.25;
-    transform.scale[2] = 1;
-    transform.orphan();
-    transform.position[1] = 0.125;
-    transform.update();
-
-    entity.removeComponent(DeployableComponent);
-    entity.model.material = window.asset.get("materials/test/yellow.mtrl");
-    entity.addComponent(ContainerComponent);
-    entity.collider.flags ^= ActorSystem.Usable;
-    entity.collider.flags ^= ActorSystem.Container;
 };
 
 ColliderComponent.Flags.Character = ColliderComponent.addFlag();

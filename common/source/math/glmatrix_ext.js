@@ -26,3 +26,15 @@ mat4.abs = function(out, m) {
     out[14] = Math.abs(m[14]);
     out[15] = Math.abs(m[15]);
 };
+
+vec3.zero = function(out) {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+};
+
+vec3.one = function(out) {
+    out[0] = 1;
+    out[1] = 1;
+    out[2] = 1;
+};

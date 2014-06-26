@@ -73,7 +73,6 @@ ColliderComponent.Box = function(cx, cy, cz, ex, ey, ez) {
     e[1] = ey;
     e[2] = ez;
 };
-
 ColliderComponent.Box.prototype = new ColliderComponent.CollisionShape();
 
 ColliderComponent.Sphere = function(px, py, pz, vx, vy, vz, span) {
@@ -94,8 +93,24 @@ ColliderComponent.Sphere = function(px, py, pz, vx, vy, vz, span) {
     e[1] = r; 
     e[2] = r;
 };
-
 ColliderComponent.Sphere.prototype = new ColliderComponent.CollisionShape();
+
+ColliderComponent.BoxGrid = function(cx, cy, cz, wx, wy, wz, sx, sy, sz) {
+    ColliderComponent.CollisionShape.call(this);
+
+    this.s = vec3.fromValues(sx, sy, sz);
+
+    var c = this.c, e = this.e;
+
+    c[0] = cx; 
+    c[1] = cy; 
+    c[2] = cz;
+
+    e[0] = (wx / 2) * sx; 
+    e[1] = (wy / 2) * sy; 
+    e[2] = (wz / 2) * sz;
+};
+ColliderComponent.BoxGrid.prototype = new ColliderComponent.CollisionShape();
 
 ColliderComponent.addFlag = (function() {
     var current = 0;
