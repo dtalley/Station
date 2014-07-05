@@ -140,19 +140,20 @@ ItemSystem.prototype.handleItemFloorQueryResult = function(empty, collider, depl
     var chunkFloor = collider.entity.components.chunk_floor;
     if(chunkFloor)
     {
+        var cursorTransform = this.cursor.transform;
         var container = chunkFloor.container;
-        vec3.subtract(this.position, this.cursor.transform.position, container.entity.transform.position);
-        quat.invert(this.rotate, container.entity.transform.rotation);
-        vec4.transformQuat(this.ray, this.position, this.rotate);
-        this.ray[0] = Math.floor(this.ray[0]);
-        this.ray[2] = Math.floor(this.ray[2]);
-        vec4.transformQuat(this.ray, this.ray, container.entity.transform.rotation);
-        vec4.add(this.cursor.transform.position, this.ray, container.entity.transform.position);
-        quat.identity(this.cursor.transform.rotation);
-        container.entity.transform.rotateOther(this.cursor.transform);
-        this.cursor.transform.update();
+        container.calculatePosition(this.position, cursorTransform.position);
+        container.repositionTransform(cursorTransform, this.position);
         this.cursor.model.visible = true;
+
+        var space = container.getSpace(this.position);
+        if( space )
+        {
+
+        }
     }
+
+    return true;
 };
 
 ItemSystem.prototype.deployItem = function(actor, item, inContainer) {

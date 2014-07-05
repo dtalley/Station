@@ -139,8 +139,16 @@ InputSystem.prototype.isActive = function(code) {
 };
 
 InputSystem.prototype.onMouseMove = function(event) {
-    this.movement[0] += event.movementX;
-    this.movement[1] += event.movementY;
+    if(event.webkitMovementX !== undefined)
+    {
+        this.movement[0] += event.webkitMovementX;
+        this.movement[1] += event.webkitMovementY;
+    }
+    else
+    {
+        this.movement[0] += event.movementX;
+        this.movement[1] += event.movementY;
+    }
 
     this.pointer[0] = event.x;
     this.pointer[1] = event.y;

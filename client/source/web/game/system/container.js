@@ -3,6 +3,9 @@ function ContainerSystem(sm, em) {
     this.em = em;
 
     this.chunkSize = 16;
+    this.chunkPosition = vec4.fromValues(0.5, 0, 0.5, 1);
+    this.chunkOffset = vec4.fromValues(-0.5, 0, -0.5, 1);
+    this.result = vec4.create();
 
     this.containers = ContainerComponent.prototype.stack;
 }
@@ -22,14 +25,28 @@ ContainerSystem.prototype.simulate = function() {
 };
 
 ContainerSystem.prototype.createContainer = function(transform) {
+    vec4.transformQuat(this.result, this.chunkOffset, transform.rotation);
+    vec3.add(this.result, this.result, transform.position);
+
+    var spaceX = Math.floor(this.chunkSize/2);
+    var spaceY = Math.floor(this.chunkSize/2);
+
+    this.result[0] -= spaceX;
+    this.result[2] -= spaceY;
+
     var entity = this.em.createEntity();
-    var container = entity.addComponent(ContainerComponent);
+    var container = entity.addComponent(ContainerComponent).configure({
+        chunkSize: this.chunkSize
+    });
     entity.addComponent(TransformComponent).configure({
-        position: transform.position,
+        position: this.result,
         rotation: transform.rotation
     });
 
-    this.createChunk(container, 0, 0);
+    var chunk = this.createChunk(container, 0, 0);
+    var space = chunk.getSpace(spaceX, spaceY);
+    space = chunk.addStrut(space);
+    chunk.modifySpace(spaceX, spaceY, space);
 };
 
 ContainerSystem.prototype.createChunk = function(container, x, y) {
@@ -42,14 +59,24 @@ ContainerSystem.prototype.createChunk = function(container, x, y) {
         shape: new ColliderComponent.BoxGrid(0, 0.25, 0, this.chunkSize, 1, this.chunkSize, 1, 1, 1),
         flags: ColliderComponent.Flags.Floor
     });
-    floor.addComponent(ChunkFloorComponent).configure({
+    var chunkFloor = floor.addComponent(ChunkFloorComponent).configure({
         x: x,
         y: y,
-        container: container
+        container: container,
+        size: this.chunkSize
     });
+
+    this.result[0] = x * this.chunkSize;
+    this.result[1] = 0;
+    this.result[2] = y * this.chunkSize;
+    vec3.add(this.result, this.result, this.chunkPosition);
+
     floor.addComponent(TransformComponent).configure({
-        parent: container.entity.transform
+        parent: container.entity.transform,
+        position: this.result
     });
+
+    return chunkFloor;
 };
 
 ColliderComponent.Flags.Floor = ColliderComponent.addFlag();

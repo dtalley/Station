@@ -10,6 +10,7 @@ Orionark.Application = function() {
     this.start = this.start.bind(this);
     this.finish = this.finish.bind(this);
     this.update = this.update.bind(this);
+    this.render = this.render.bind(this);
 
     this.time = 0;
     this.now = 0;
@@ -120,7 +121,7 @@ Orionark.Application.prototype = {
         this.time = performance.now();
         //this.finish();
         this.timer = setTimeout(this.update, 0);
-        window.requestAnimationFrame(this.start);
+        window.requestAnimationFrame(this.render);
     },
 
     update: function() {
@@ -129,7 +130,7 @@ Orionark.Application.prototype = {
 
         if(this.draw)
         {
-            this.render();
+            //this.render();
         }
 
         clearTimeout(this.timer);
@@ -154,7 +155,7 @@ Orionark.Application.prototype = {
     },
 
     start: function(time) {
-        this.draw = true;
+        //this.draw = true;
     },
 
     render: function() {
@@ -170,7 +171,7 @@ Orionark.Application.prototype = {
         //console.timeEnd("onk_start");
         //console.time("onk_finish");
         
-        window.requestAnimationFrame(this.start);
+        window.requestAnimationFrame(this.render);
         //this.start();
     },
 

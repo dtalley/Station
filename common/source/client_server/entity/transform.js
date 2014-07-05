@@ -106,6 +106,8 @@ TransformComponent.prototype.orphan = function(transform) {
         parent.transformOther(this);
         parent.removeChild(this);
     }
+
+    return this;
 };
 
 TransformComponent.prototype.transformOther = function(transform) {
@@ -113,6 +115,14 @@ TransformComponent.prototype.transformOther = function(transform) {
     vec4.transformQuat(a, a, c);
     vec3.add(a, this.position, a);
     quat.multiply(b, c, b);
+};
+
+TransformComponent.prototype.move = function(x, y, z) {
+    this.position[0] += x;
+    this.position[1] += y;
+    this.position[2] += z;
+
+    return this;
 };
 
 TransformComponent.prototype.rotateOther = function(transform) {

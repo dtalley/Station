@@ -69,12 +69,10 @@ GameState.prototype.onAllLoaded = function() {
     this.sm.addSystem(PhysicsSystem);
     this.sm.addSystem(ContainerSystem);
     this.sm.addSystem(ActorSystem);
+    this.sm.addSystem(ItemSystem);
 
     //Rendering systems
     this.sm.addSystem(RenderSystem);
-
-    //Utility systems
-    this.sm.addSystem(ItemSystem);
 
     this.sm.initialize();
     
