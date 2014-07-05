@@ -20,6 +20,8 @@ ContainerComponent.prototype.onDetached = function() {
 
 ContainerComponent.prototype.configure = function(options) {
     if(options.chunkSize!==undefined)this.chunkSize = options.chunkSize & 0xFFFFFFFF;
+
+    return this;
 };
 
 ContainerComponent.prototype.addChunk = function(chunk, x, y) {
