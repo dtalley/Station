@@ -1,6 +1,8 @@
 function PhysicsSystem(sm, em) {
     this.sm = sm;
     this.em = em;
+
+    this.renderDebug = false;
 }
 
 PhysicsSystem.prototype = new SystemPrototype("physics", true, false);

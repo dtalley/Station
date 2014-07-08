@@ -40,6 +40,7 @@ GameState.prototype.loadBundle = function() {
     this.gameAssetBundle.add("models/test/arrow.oml", true);
     this.gameAssetBundle.add("models/test/strut.oml", true);
     this.gameAssetBundle.add("models/test/deploy.oml", true);
+    this.gameAssetBundle.add("models/test/aabb.oml", true);
     this.gameAssetBundle.add("materials/test/color.mtrl", true);
     this.gameAssetBundle.add("materials/test/red.mtrl", true);
     this.gameAssetBundle.add("materials/test/green.mtrl", true);
@@ -73,6 +74,7 @@ GameState.prototype.onAllLoaded = function() {
 
     //Rendering systems
     this.sm.addSystem(RenderSystem);
+    this.sm.addSystem(CollisionDebugSystem);
 
     this.sm.initialize();
     

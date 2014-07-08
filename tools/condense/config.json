@@ -125,6 +125,8 @@
                 "common/source/client_server/system/physics.js",
                 "common/source/client_server/system/collision.js",
 
+                "common/source/client_tools/system/collision_debug.js",
+
                 "client/source/web/game/stub/database.js"
             ],
 

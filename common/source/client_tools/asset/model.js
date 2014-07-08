@@ -31,6 +31,19 @@ ModelAsset.prototype.subProcess = function() {
         }
     }
 
+    if(this.parsed.config)
+    {
+        if(this.parsed.config.type)
+        {
+            switch(this.parsed.config.type)
+            {
+                case "lines":
+                    this.drawType = graphics.Lines;
+                    break;
+            }
+        }
+    }
+
     this.attributes = this.parsed.attributes;
 
     this.vertices = new Float32Array(this.parsed.vertices);

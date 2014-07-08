@@ -102,12 +102,12 @@ ColliderComponent.BoxGrid = function(cx, cy, cz, wx, wy, wz, sx, sy, sz) {
 
     var c = this.c, e = this.e;
 
-    c[0] = cx; 
-    c[1] = cy; 
+    c[0] = cx;
+    c[1] = cy;
     c[2] = cz;
 
-    e[0] = (wx / 2) * sx; 
-    e[1] = (wy / 2) * sy; 
+    e[0] = (wx / 2) * sx;
+    e[1] = (wy / 2) * sy;
     e[2] = (wz / 2) * sz;
 };
 ColliderComponent.BoxGrid.prototype = new ColliderComponent.CollisionShape();
